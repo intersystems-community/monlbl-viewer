@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="index.csp" application="/csp/user/gmonlbl/"><![CDATA[
+<html>
+	<head>
+		<title>	Cache Server Page </title>
+		
+		<!-- CSS Initializing -->
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    	<link rel="stylesheet" type="text/css" href="css/custom.css">
+    	<link rel="stylesheet" type="text/css" href="css/non-responsive.css">
+    	
+	</head>
+	
+	<body>
+	
+		<div class="navbar">
+  			<div class="navbar-inner">
+    			<a class="brand" href="#">MONLBL Viewer</a>
+   				<ul class="nav">
+      				<li><input class="btn nav-btn" id="btnStart" type="button" value="Start"></li>
+      				<li><input class="btn nav-btn" id="btnStop" type="button" value="Stop" onclick="menuBtnClick('Stop');"></li>
+      				<li><input class="btn nav-btn" id="btnPauseResume" type="button" value="Pause"></li>
+      				<li><input class="btn nav-btn" id="btnSummary" type="button" value="Summary"></li>
+    			</ul>
+    			<div class="pull-right">
+    				<label class="status" id="labelStatus"/>
+    			</div>
+  			</div>
+		</div>
+		
+		<div class="startPopup">
+			<div class="searchInput">		
+				<input class="btn" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
+  				<input type="search" id="search" placeholder="List of routines separated by commas"/>
+  				<span>Routine patterns</span>
+			</div><!--/.input -->
+		</div>
+		
+		<div class="alert alert-info alert-routine hidden" id="emptyRoutinePattern">
+			<p class="emptyRoutinePatternText"></p>
+			<button type="button" class="close" onclick="$('#emptyRoutinePattern').toggleClass('hidden');">×</button>
+		</div>
+		
+		<div class="alert alert-info alert-routine hidden" id="routineNotFound">
+			Routine not found.
+			<button type="button" class="close" onclick="$('#routineNotFound').toggleClass('hidden');">×</button>
+		</div>
+		
+		<div class="alert alert-error alert-routine hidden" id="methodError">
+			<p class="methodErrorText"></p>
+			<button type="button" class="close" onclick="$('#methodError').toggleClass('hidden');">×</button>
+		</div>
+		
+		<div class="hero-unit">
+  			<h1>MONLBL Viewer</h1>
+  			<p>A web tool to explore statistics of Caché Monitor</p>
+		</div>
+		
+		<div class="tblSummaryContainer hidden">
+			<table id="tblSummary" class="table table-striped table-bordered tablesorter">
+				<thead>
+					<tr>
+						<th >#</th>
+						<th data-type="string" class="asc">Routine</th>
+						<th data-type="number" class="asc">Lines</th>
+						<th data-type="number" class="asc">Lines Hit</th> 
+						<th data-type="number" class="asc" id="timeCell">Time</th>
+					</tr>
+				</thead>
+				<tbody id="tblSummaryBody">
+				</tbody>	
+			</table>
+		</div>
+
+	</body>
+
+	<!-- Scripts -->
+    <script language="javascript" src="lib/jquery-1.11.1.min.js"></script>
+    <script language="javascript" src="lib/bootstrap.min.js"></script>
+	<script language="javascript" src="lib/bootbox.min.js"></script>
+	<script language="javascript" src="lib/custom.js"></script>     
+    
+    <script language="javascript">
+		var routineList = "";
+		
+		var onPageLoad =(function()	{
+			
+		    // obtain monitor status
+		    // 0 - stopped, 1 - running, 2 - paused
+		    var monitorStatus = #(..EscapeHTML(..CheckMonitorStatus()))#;
+
+		    if (+monitorStatus === 0) {
+		        $("#btnStart").prop('disabled', false);
+		        $("#btnStop").prop('disabled', true);
+		        $("#btnPauseResume").prop('disabled', true);
+		        $("#btnSummary").prop('disabled', true);
+		        $("#labelStatus").text('Status: Stopped');
+		    }
+		    else if (+monitorStatus === 1)
+		    {
+		        $("#btnStart").prop('disabled', true);
+		        $("#btnStop").prop('disabled', false);
+		        $("#btnPauseResume").prop('disabled', false);
+		        $("#btnSummary").prop('disabled', false);
+		        $("#labelStatus").text('Status: Running');				
+		    }
+		    else if (+monitorStatus === 2)
+		    {
+		        $("#btnStart").prop('disabled', true);
+		        $("#btnStop").prop('disabled', false);
+		        $("#btnPauseResume").prop('disabled', false);
+		        $("#btnPauseResume").prop('value', 'Resume');
+		        $("#btnSummary").prop('disabled', false);
+		        $("#labelStatus").text('Status: Paused');				
+		    }
+
+		})();
+
+		// click handler for 'Start Monitor' button in Routine patterns' popup 
+		$("#btnRoutinesPopup" ).on("click", function() {
+		    if ($('#search').val() !== '') {
+		        menuBtnClick('Start', $('#search').val());
+		        $('#search').val("");	
+		    }
+		    else {
+		        $('.emptyRoutinePatternText').text('There is no routine selected. Monitor does not started.');
+		        $('#emptyRoutinePattern').toggleClass('hidden');				
+		    }
+		    $('.startPopup').toggleClass("active");	
+		});
+
+		// click handler for Pause/Resume button
+		$("#btnPauseResume" ).on("click", function() {
+		    if ($("#btnPauseResume" ).val() == 'Pause') {
+		        menuBtnClick('Pause');	
+		    }
+		    else if ($("#btnPauseResume" ).val() == 'Resume') {
+		        menuBtnClick('Resume');	
+		    }
+		});
+
+
+		// click handler for Summary button
+		$("#btnSummary").on("click", function() {
+		    if (!$(".hero-unit").hasClass('hidden')) {
+		        $(".hero-unit").toggleClass('hidden');
+		    }
+
+
+		    if ($(".tblSummaryContainer").hasClass('hidden')) {
+		        $(".tblSummaryContainer").toggleClass('hidden');
+		    }
+
+		    var jsonData = #server(..GetSummary())#;	
+		    jsonData = $.parseJSON(jsonData);
+
+		    var tr;
+
+		    $("#tblSummary tbody tr").remove();
+
+		    for (var i = 0; i < jsonData.length; i++) {
+		        tr = $('<tr/>');
+		        tr.append("<td class="+"rownums"+">" + "</td>");
+		        tr.append("<td>" + jsonData[i].Routine + "</td>");
+		        tr.append("<td>" + jsonData[i].LinesCode + "</td>");
+		        tr.append("<td>" + jsonData[i].LinesHit + "</td>");
+		        tr.append("<td>" + jsonData[i].Time + "</td>");
+		        $('#tblSummaryBody').append(tr);
+		    }
+			
+		    $("#tblSummary").trigger("update");
+		    $("#timeCell").click();
+		});	
+
+		// rotines pattern popup's handlers
+		$(function() {
+		    $("#btnStart" ).click(function() {
+		        $('.startPopup').toggleClass("active");
+		        $('#search').focus();
+		    });
+
+		    $('#search').focus(function(){
+		        $(this.value).show();
+		    });
+
+		    $('.startPopup').on("focusout", function(){ 
+		        $('.startPopup').toggleClass("active");
+		    });
+
+		});
+	
+		
+		// Menu button's click handler
+		function menuBtnClick(type, rtnname) {
+		    switch (type)
+		    {
+		        case 'Start':
+		        	
+					var re = /\s*,\s*/
+					var routineList = rtnname.split(re);
+					var rtnname = "";
+					
+		        	for	(var i = 0; i < routineList.length; i++) {
+			       		rtnname = rtnname + routineList[i] + '|';
+		        	}	      
+		        	
+		        	rtnname = rtnname.slice(0, -1);		     
+		        	
+		        	var status = #server(..StartMonitor(rtnname))#;      
+
+		             // it's ok. Status contains number of selected routines.
+		             if (+status > 0) {
+		                $('.emptyRoutinePatternText').text(status + ' routine(s) added to selection.');
+		                if ($('#emptyRoutinePattern').hasClass('hidden')) {
+		                    $('#emptyRoutinePattern').toggleClass('hidden');	
+		                }			 
+		                $("#btnStart").prop('disabled', true);
+		                $("#btnStop").prop('disabled', false);
+		                $("#btnPauseResume").prop('disabled', false);
+		                $("#btnSummary").prop('disabled', false);
+		                $("#labelStatus").text('Status: Running');
+		            }
+		            // specified routine was not found
+		            else if (+status == 0) {
+		                if ($('#routineNotFound').hasClass('hidden')) {
+		                    $('#routineNotFound').toggleClass('hidden');	
+		                }				
+		            }
+		            // memory allocation failed
+		            else if (+status == -1) {
+		                $('.methodErrorText').text('Memory allocation failed.');
+		                $('#methodError').toggleClass('hidden');	
+		            }
+		            // couldn't enable stats  collection
+		            else if (+status == -2) {
+		                $('.methodErrorText').text("Couldn't enable stats collection");
+		                $('#methodError').toggleClass('hidden');
+		            }
+		            break;
+		        case 'Stop':
+		            bootbox.confirm("It will wipe all statistics. Resume?", function(result) {
+		                if (result === true)
+		                {
+		                    #server(..StopMonitor())#
+
+		                    $("#btnStart").prop('disabled', false);
+		                    $("#btnStop").prop('disabled', true);
+		                    $("#btnPauseResume").prop('value', 'Pause'); 
+		                    $("#btnPauseResume").prop('disabled', true);
+		                    $("#btnSummary").prop('disabled', true);
+		                    $("#labelStatus").text('Status: Stopped');
+
+		                    $("#tblSummaryBody tr").remove();
+
+		                    if (!$(".tblSummaryContainer").hasClass('hidden')) {
+		                        $(".tblSummaryContainer").toggleClass('hidden');
+		                    }
+		                    
+		                    if (!$("#methodError").hasClass('hidden')) {
+		        				$("#methodError").toggleClass('hidden');
+		    				}
+
+		                    if (!$("#routineNotFound").hasClass('hidden')) {
+		        				$("#routineNotFound").toggleClass('hidden');
+		    				}
+
+		                    if (!$("#emptyRoutinePattern").hasClass('hidden')) {
+		        				$("#emptyRoutinePattern").toggleClass('hidden');
+		    				}
+
+		                    if ($(".hero-unit").hasClass('hidden')) {
+		                        $(".hero-unit").toggleClass('hidden');
+		                    }
+		                }
+		            });
+		            break;					
+		        case 'Pause':
+		            var status = #server(..PauseMonitor())#;
+
+		            if (+status == -1) {
+		                $('.methodErrorText').text('Somebody else is using Monitor');
+		                $('#methodError').toggleClass('hidden');				
+		            }	
+		            else if (+status == -2) {
+		                $('.methodErrorText').text('Monitor is not running');
+		                $('#methodError').toggleClass('hidden');				
+		            }	
+		            else if (+status == -3) {
+		                $('.methodErrorText').text('Monitor is already paused');
+		                $('#methodError').toggleClass('hidden');				
+		            }
+
+		            $("#labelStatus").text('Status: Paused');
+		            $("#btnPauseResume").prop('value', 'Resume');
+		            break;
+		        case 'Resume':
+		            var status = #server(..ResumeMonitor())#;
+
+		            if (+status == -1) {
+		                $('.methodErrorText').text('Somebody else is using Monitor');
+		                $('#methodError').toggleClass('hidden');				
+		            }	
+		            else if (+status == -2) {
+		                $('.methodErrorText').text('Monitor is not running');
+		                $('#methodError').toggleClass('hidden');				
+		            }	
+		            else if (+status == -3) {
+		                $('.methodErrorText').text('Monitor is already running');
+		                $('#methodError').toggleClass('hidden');				
+		            }
+
+		            $("#labelStatus").text('Status: Running');
+		            $("#btnPauseResume").prop('value', 'Pause');
+		            break;	
+		        default:
+		            break;
+		    }; 
+		} 
+	</script>
+    
+	<!-- Cache Scripts -->
+
+	<script language="Cache" method="CheckMonitorStatus" arguments="" returntype="%String">
+		
+		// if $zu(84,8) = 0 then Monitor stopped. 
+		if ($zu(84,8) = 0) return 0
+		
+		// if $zu(84,8) = 1 then Monitor started.
+		if ($zu(84,8) = 1)
+		{
+			// if $zu(84,1) = 0 then Monitor started, but paused.
+			if ($zu(84,1) = 0) return 2
+			
+			return 1
+		}
+	</script>
+	
+	<script language="Cache" method="StartMonitor" arguments="routineList:%String" returntype="%String">
+		
+		lock +^|"%SYS"|SYS("MON-HOLD"):3
+			
+		// deselect all, prepare to incoming routine list
+		do $zu(84,12,0)
+		
+		set j = 1
+		set nlist = 0
+		set rtnname = $piece(routineList,"|",j)
+			
+		while (rtnname '= "") {
+			set rtnname = rtnname_".obj"
+			
+			do {
+				 set data="",more=$$LIST^%R(rtnname,32767,0,.data,.ctx)
+				 
+				 for i=1:1:$listlength(data) {
+					 set rtn=$list(data,i)
+					 set rtn=$piece(rtn,".",1,$length(rtn,".")-1)
+					 
+					 if $znspace="%SYS",rtn="START" { continue }
+					
+					 x "zl "_rtn_" set ok=$zu(84,12,1)"
+					 
+					 if (ok) { 
+					 	set nlist = nlist + 1
+					 }
+				 }
+	 		} while more
+	
+				set j = j + 1
+				set rtnname = $piece(routineList,"|",j)
+			}
+	 		
+	 		// select all
+	 		do $zu(84,13,2)
+	 		
+	 		// allocate memory and initialize data structures
+	        // (switch on monitoring)
+	 		if ($zu(84,0,1,1,1,1,1,1) '= 1) {
+				return -1
+			}
+			
+			// enable stats for all jobs
+			if ($zu(84,1,1) '= 1) { return -2 }
+			
+			// enable line-by-line monitoring
+			do $zu(84,15)
+			
+			set ^|"%SYS"|SYS("MONITOR","START")=$h
+	 		kill ^|"%SYS"|SYS("MONITOR","PAUSE"),^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
+			
+			lock -^|"%SYS"|SYS("MON-HOLD")
+				
+		return nlist
+	</script>
+	
+	<script language="Cache" method="StopMonitor" arguments="" returntype="%String">
+		 set status=1
+		 
+		 lock +^|"%SYS"|SYS("MON-HOLD"):3
+		 
+		 // disable stats
+		 set zu84=$zu(84,1,0)
+		 
+		 // end collection
+		 set zu84=$zu(84,0,0)
+		 
+		 kill ^|"%SYS"|SYS("MONITOR","START")
+		 kill ^|"%SYS"|SYS("MONITOR","PAUSE"),^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
+		 
+		 lock -^|"%SYS"|SYS("MON-HOLD")
+		 
+		 return status
+   </script>
+   
+    <script language="Cache" method="PauseMonitor" arguments="" returntype="%String">
+    
+		 lock +^|"%SYS"|SYS("MON-HOLD"):3
+		 
+		 // somebody already uses monitor 
+		 else  lock -^|"%SYS"|SYS("MON-HOLD") return -1
+		 
+		 // monitor is not running
+		 if ($zu(84,8) = 0) {
+		 	lock -^|"%SYS"|SYS("MON-HOLD")
+		 	return -2
+		 }
+		 
+		 // monitor already paused
+		 if ($zu(84,1) = 0) {
+		 	lock -^|"%SYS"|SYS("MON-HOLD")
+		 	return -3
+		 }
+		 
+		 // disable stats
+		 set zu84 = $zu(84,1,0)
+		 
+		 set ^|"%SYS"|SYS("MONITOR","PAUSE")=$h 
+		 lock -^|"%SYS"|SYS("MON-HOLD")
+		 
+		 return 1
+   </script>
+   
+   	<script language="Cache" method="ResumeMonitor" arguments="" returntype="%String">
+
+	 lock +^|"%SYS"|SYS("MON-HOLD"):3
+	 
+	 // Somebody already uses monitor 
+	 else  lock -^|"%SYS"|SYS("MON-HOLD") return -1
+		 
+	 // Monitor is not running
+	 if ($zu(84,8) = 0) {
+		lock -^|"%SYS"|SYS("MON-HOLD")
+		return -2
+	 }
+		 
+	 // Monitor already running
+	 if ($zu(84,1) = 1) {
+		 lock -^|"%SYS"|SYS("MON-HOLD")
+		 return -3
+	 }
+	 
+	 set zu84 = $zu(84,1,1)
+	 set h1 = $h
+
+	 if $d(^|"%SYS"|SYS("MONITOR","PAUSE")) 
+	 {
+		 
+	 	set x=((h1-^|"%SYS"|SYS("MONITOR","PAUSE"))*86400)+($p(h1,",",2)-$p(^|"%SYS"|SYS("MONITOR","PAUSE"),",",2))
+	 	set ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")=x+$g(^|"%SYS"|SYS("MONITOR","PAUSE-TIME"))
+	 	kill ^|"%SYS"|SYS("MONITOR","PAUSE")
+	 }
+	 
+	 lock -^|"%SYS"|SYS("MON-HOLD")
+	 return 1
+   </script>
+
+	<script language="Cache" method="GetSummary" arguments="" returntype="%String">
+	 set index=$increment(^CacheTemp)
+     $$$AddTempNode(^CacheTemp(index))	 
+	 set sortindex=-1,rtnline=-1
+	 for metric=0:1:($zutil(84,13)-1) {
+		set n=$zutil(84,13,11,metric)
+		if n=50 set sortindex=metric
+		if n=33 set rtnline=metric
+	 }
+	 
+	 // $zu(84,16) returns number of routines being monitored
+	 for rtnnum=1:1:($zu(84,16)) {
+		// don't report on routines with no lines executed
+	 	if $zu(84,16,1,rtnnum)=0 { continue }
+
+	 kill metric 
+	 set hits = 0
+	 // zero coverage stats
+	 if $zutil(84,16,1,rtnnum)=0 {
+		 // get number of lines in routine
+		 set line=$$LENGTH^%R($zu(84,16,2,rtnnum))
+		 
+		 if (line = 0) { 
+			set metric(-1) = -1
+		 	set metric(-2) = 0
+		 	set metric(-3) = "NA" 
+		 }  
+		 else  {
+			 set metric(-1) = 0
+			 set metric(-2) = 0
+			 set metric(-3) = line
+		 }
+	 }
+	
+	 // for each routine line
+	 for line=0:1:($zu(84,16,1,rtnnum)-1) {
+	 // for each metric
+		for i=0:1:($zu(84,13)-1) {
+			set metric(i)=$get(metric(i))+$zu(84,16,3,line,i)
+		}
+		if $zu(84,16,3,line,rtnline) { set hits = hits + 1 }
+	 }
+	
+		set line = $zu(84,16,7,rtnnum)
+		set metric(-3) = line
+		set metric(-2) = hits
+		set metric(-1) = +$fnumber(hits/line*100,"",2)
+	
+	 	// $zu(84,16,2,rtn_n) returns routine name by number 
+	 	set rtn = $zu(84,16,2,rtnnum)
+		
+		if sortindex=-1 {
+			set sort = sortindex
+		} 
+		else {
+			set sort = metric(sortindex)
+		}
+		merge ^CacheTemp(index,sort,rtn) = metric
+	 }
+	 
+	 kill totmetric
+	 kill summary
+	 
+	 
+	 set count=0
+	 
+	 set sort="" for  set sort=$order(^CacheTemp(index,sort),-1) quit:sort=""  do
+	 . set rtn="" for  set rtn=$order(^CacheTemp(index,sort,rtn)) quit:rtn=""  do
+	 . . set summary(rtn) = count, count = count + 1  
+	 . . set metric = "" for  set metric=$order(^CacheTemp(index,sort,rtn,metric),1,out) quit:metric=""  do
+	 . . . set totmetric(metric) = $get(totmetric(metric)) + out
+	 . . . // handle coverage percent
+	 . . . if metric=-3 set out=$select(out=-1:"NA",1:out), summary(rtn, "LinesCode") = out
+	 . . . if metric=-2 set out=$select(out=-1:"NA",1:out), summary(rtn, "LinesHit") = out
+	 . . . // convert clock/CPU time to seconds
+	 . . . set n="" if metric'<0 set n=$zu(84,13,11,metric)
+	 . . . if (n=50)!(n=51) set out=$select(out=0:"0"_$justify("",sp-4),1:$fnumber(out/1000000,"",6)) ; RFD057
+	 . . . // don't accumulate total time, it doesn't make sense		
+	 . . . if (n = 50) { set summary(rtn, "Time") = out }		
+	 
+	 kill ^CacheTemp(index)
+ 	 $$$RemoveTempNode(^CacheTemp(index))
+	 
+	 set json = "["
+	 set rtn = $order(summary(""))
+	 while (rtn '= "") {
+	 	set json = json_"{""Routine"":"""_rtn_""",""LinesCode"":"""
+	 					_summary(rtn, "LinesCode")_""",""LinesHit"":"""
+	 					_summary(rtn, "LinesHit")_""",""Time"":"""
+	 					_summary(rtn, "Time")_"""},"
+	 	set rtn = $order(summary(rtn))				
+	 }
+	 
+	 if (json '= "[") { set json = $extract(json,1,*-1)_"]" }
+	 else { set json = "" }
+	 
+	 return json
+   </script>
+
+</html>
+]]></CSP>
+</Export>

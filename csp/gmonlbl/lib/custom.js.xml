@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="lib/custom.js" application="/csp/user/gmonlbl/"><![CDATA[
+
+// table sorting
+function tableSorting(tableId) {
+
+  var grid = document.getElementById(tableId);
+
+  grid.onclick = function(e) {
+    var target = e && e.target || window.event.srcElement;
+      
+    if (event.stopPropagation) {
+        event.stopPropagation();
+    } else {
+        event.cancelBubble = true;
+    }
+      
+    if (target.tagName != 'TH') return;
+
+    var order = 0;
+
+    if ($(target).hasClass('asc')) {
+        order = 0;
+        $(target).toggleClass('asc');
+    }
+    else {
+        order = 1;
+        $(target).toggleClass('asc');
+    }
+
+    // if 'TH' then sort
+    sortGrid(target.cellIndex, target.getAttribute('data-type'), order);
+  };
+
+  function sortGrid(colNum, type, order) {
+    var tbody = grid.getElementsByTagName('tbody')[0];
+
+    // build array of 'TR'
+    var rowsArray = [];
+    for(var i = 0; i<tbody.children.length; i++) {
+      rowsArray.push(tbody.children[i]);
+    }
+
+    // dynamically specify the compare algorithm
+    var compare;
+
+    switch(type) {
+      case 'number':
+        compare = function(rowA, rowB) {
+          if (+order == 0) {
+              return rowA.cells[colNum].innerHTML - rowB.cells[colNum].innerHTML; 
+          }
+          else if (+order == 1) {
+            return -(rowA.cells[colNum].innerHTML - rowB.cells[colNum].innerHTML); 
+          }
+        };
+        break;
+      case 'string':
+        compare = function(rowA, rowB) {
+            if (+order == 0) {
+                return rowA.cells[colNum].innerHTML > rowB.cells[colNum].innerHTML ? 1 : -1;
+            }
+            else  if (+order == 1) {
+                return rowA.cells[colNum].innerHTML < rowB.cells[colNum].innerHTML ? 1 : -1;
+            }
+        };
+        break;
+    }
+
+    // sorting
+    rowsArray.sort(compare);
+
+    // remove tbody from document for better perfomance
+    grid.removeChild(tbody);
+
+    // remove 'TR' from tbody
+    while(tbody.firstChild) {
+      tbody.removeChild(tbody.firstChild);
+    }
+
+    // add 'TR' in right order
+    for(var i=0; i<rowsArray.length; i++) {
+      tbody.appendChild(rowsArray[i]);
+    }
+
+    grid.appendChild(tbody);
+
+  }
+};
+
+tableSorting('tblSummary');
+]]></CSP>
+</Export>
