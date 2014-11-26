@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="index.csp" application="/csp/user/gmonlbl/"><![CDATA[
+<!DOCTYPE html>
+
 <html>
 	<head>
 		<title>	Cache Server Page </title>
@@ -57,15 +59,15 @@
   			<p>A web tool to explore statistics of Caché Monitor</p>
 		</div>
 		
-		<div class="tblSummaryContainer hidden">
-			<table id="tblSummary" class="table table-striped table-bordered tablesorter">
+		<div class="tblContainer hidden">
+			<table id="tblSummary" class="table table-bordered table-hover">
 				<thead>
 					<tr>
-						<th >#</th>
-						<th data-type="string" class="asc">Routine</th>
-						<th data-type="number" class="asc">Lines</th>
-						<th data-type="number" class="asc">Lines Hit</th> 
-						<th data-type="number" class="asc" id="timeCell">Time</th>
+						<th class="center-align">#</th>
+						<th data-type="string" class="asc center-align">Routine</th>
+						<th data-type="number" class="asc center-align">Lines</th>
+						<th data-type="number" class="asc center-align">Lines Hit</th> 
+						<th data-type="number" class="asc center-align" id="timeCell">Time</th>
 					</tr>
 				</thead>
 				<tbody id="tblSummaryBody">
@@ -82,9 +84,10 @@
 	<script language="javascript" src="lib/custom.js"></script>     
     
     <script language="javascript">
+		
 		var routineList = "";
 		
-		var onPageLoad =(function()	{
+		(function() {
 			
 		    // obtain monitor status
 		    // 0 - stopped, 1 - running, 2 - paused
@@ -103,7 +106,8 @@
 		        $("#btnStop").prop('disabled', false);
 		        $("#btnPauseResume").prop('disabled', false);
 		        $("#btnSummary").prop('disabled', false);
-		        $("#labelStatus").text('Status: Running');				
+		        $("#labelStatus").text('Status: Running');	
+		        btnSummaryClick();			
 		    }
 		    else if (+monitorStatus === 2)
 		    {
@@ -112,7 +116,8 @@
 		        $("#btnPauseResume").prop('disabled', false);
 		        $("#btnPauseResume").prop('value', 'Resume');
 		        $("#btnSummary").prop('disabled', false);
-		        $("#labelStatus").text('Status: Paused');				
+		        $("#labelStatus").text('Status: Paused');	
+		        btnSummaryClick();			
 		    }
 
 		})();
@@ -141,15 +146,18 @@
 		});
 
 
+
 		// click handler for Summary button
-		$("#btnSummary").on("click", function() {
+		$("#btnSummary").on("click", btnSummaryClick);	
+		
+		function btnSummaryClick() {
 		    if (!$(".hero-unit").hasClass('hidden')) {
 		        $(".hero-unit").toggleClass('hidden');
 		    }
 
 
-		    if ($(".tblSummaryContainer").hasClass('hidden')) {
-		        $(".tblSummaryContainer").toggleClass('hidden');
+		    if ($(".tblContainer").hasClass('hidden')) {
+		        $(".tblContainer").toggleClass('hidden');
 		    }
 
 		    var jsonData = #server(..GetSummary())#;	
@@ -161,18 +169,19 @@
 
 		    for (var i = 0; i < jsonData.length; i++) {
 		        tr = $('<tr/>');
-		        tr.append("<td class="+"rownums"+">" + "</td>");
-		        tr.append("<td>" + jsonData[i].Routine + "</td>");
-		        tr.append("<td>" + jsonData[i].LinesCode + "</td>");
-		        tr.append("<td>" + jsonData[i].LinesHit + "</td>");
-		        tr.append("<td>" + jsonData[i].Time + "</td>");
+		        tr.append("<td class=" +"\"center-align rownums\""+">" + "</td>");
+		        tr.append("<td class="+"center-align"+">" + jsonData[i].Routine + "</td>");
+		        tr.append("<td class="+"right-align"+">" + jsonData[i].LinesCode + "</td>");
+		        tr.append("<td class="+"right-align"+">" + jsonData[i].LinesHit + "</td>");
+		        tr.append("<td class="+"right-align"+">" + jsonData[i].Time + "</td>");
 		        $('#tblSummaryBody').append(tr);
 		    }
 			
 		    $("#tblSummary").trigger("update");
 		    $("#timeCell").click();
-		});	
-
+		};
+		
+	
 		// rotines pattern popup's handlers
 		$(function() {
 		    $("#btnStart" ).click(function() {
@@ -184,13 +193,13 @@
 		        $(this.value).show();
 		    });
 
-		    $('.startPopup').on("focusout", function(){ 
+		    $('.startPopup').on("focusout", function() { 
 		        $('.startPopup').toggleClass("active");
 		    });
 
 		});
-	
 		
+				
 		// Menu button's click handler
 		function menuBtnClick(type, rtnname) {
 		    switch (type)
@@ -253,8 +262,8 @@
 
 		                    $("#tblSummaryBody tr").remove();
 
-		                    if (!$(".tblSummaryContainer").hasClass('hidden')) {
-		                        $(".tblSummaryContainer").toggleClass('hidden');
+		                    if (!$(".tblContainer").hasClass('hidden')) {
+		                        $(".tblContainer").toggleClass('hidden');
 		                    }
 		                    
 		                    if (!$("#methodError").hasClass('hidden')) {
@@ -316,7 +325,26 @@
 		        default:
 		            break;
 		    }; 
-		} 
+		};
+		
+
+		$("#tblSummary").on("click", function(e) {
+		    var target = e && e.target || window.event.srcElement;
+
+		    while (target != this) {
+			    if (target.tagName == 'TH') {
+				    break;
+			    }
+		        if (target.tagName == 'TR') {
+		            var name = target.getElementsByTagName("td")[1].innerHTML;
+		            window.location.href = 'routine.csp?name='+name;
+		            break;
+		         }
+		        target = target.parentNode;
+		    }      
+        }); 
+		
+		tableSorting("tblSummary");
 	</script>
     
 	<!-- Cache Scripts -->

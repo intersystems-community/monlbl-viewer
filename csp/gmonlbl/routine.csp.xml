@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="routine.csp" application="/csp/user/gmonlbl/"><![CDATA[
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>	Cache Server Page </title>
+		
+		<!-- CSS Initializing -->
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    	<link rel="stylesheet" type="text/css" href="css/custom.css">
+    	<link rel="stylesheet" type="text/css" href="css/non-responsive.css">
+    	
+	</head>
+	
+	<body>
+	
+		<div class="navbar">
+  			<div class="navbar-inner">
+    			<a class="brand" href="#">MONLBL Viewer</a>
+   				<ul class="nav">
+      				<li><input class="btn nav-btn" id="btnBack" type="button" value="Back"></li>
+    			</ul>
+    			<div class="pull-right">
+    				<label class="status" id="labelStatus"/>
+    			</div>
+  			</div>
+		</div>
+		
+		<div class="tblContainer">
+			<table id="tblRoutineDetails" class="table table-bordered table-hover">
+				<thead>
+					<tr>
+						<th class="center-align">#</th>
+						<th data-type="number" class="asc center-align">RtnLine</th>
+						<th data-type="number" class="asc center-align">Time</th>
+						<th data-type="number" class="asc center-align">Total Time</th> 
+						<th data-type="string" class="asc center-align" id="timeCell">Code</th>
+					</tr>
+				</thead>
+				<tbody id="tblRoutineDetailsBody">
+				</tbody>	
+			</table>
+		</div>		
+		
+	</body>
+
+	<!-- Scripts -->
+    <script language="javascript" src="lib/jquery-1.11.1.min.js"></script>
+    <script language="javascript" src="lib/bootstrap.min.js"></script>
+	<script language="javascript" src="lib/custom.js"></script>     
+    
+   	<script language="javascript">
+   		
+   		var v = "#(..EscapeHTML(%request.Get("name",1)))#";
+		
+		var jsonData = (#server(..FetchRoutineData(v))#);	
+		jsonData = $.parseJSON(jsonData);
+		
+		(function() {
+			var tr;
+
+			$("#tblRoutineDetails tbody tr").remove();
+
+			for (var i = 0; i < jsonData.length; i++) {
+			    tr = $('<tr/>');
+			    tr.append("<td class=" +"\"center-valign center-align rownums\""+">" + "</td>");
+			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].RtnLine + "</td>");
+			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].Time + "</td>");
+			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].TotalTime + "</td>");
+			    tr.append("<td>" + jsonData[i].Line + "</td>");
+			    $('#tblRoutineDetails').append(tr);
+			};
+		})();
+		
+   		// Back button handler
+   		$("#btnBack").on("click", function(){
+   			window.location.href = 'index.csp';
+   		});
+   		
+   </script>
+   
+ 
+   <script language="Cache" method="FetchRoutineData" arguments="rtnName:%String" returntype="%String">
+ 	set totalData = ""
+ 	
+ 	set routine = ##class(%Library.Routine).%OpenId(rtnName)	
+ 	
+ 	set stream = ##class(%Stream.TmpCharacter).%New()
+ 	set outStream = ##class(%Stream.TmpCharacter).%New()
+ 	
+ 	set colorer = ##class(%SyntaxColor).%New()
+ 	
+	// find routine
+	set rtnNum = $zutil(84,16)
+	set found = 0
+	
+	for rtn=1:1:rtnNum {
+		if (rtnName = $zutil(84,16,2,rtn))
+		{ 
+			set found = 1
+			quit
+		}
+	}
+	
+	if ('found) return ""
+	
+	// collect routine data
+	set lines = $zutil(84,16,1,rtn)
+	
+	if lines = 0 return ""
+	
+	for line=0:1:(lines-1) {		
+	kill map
+		
+	set list = ""
+	
+	set data=$zutil(84,16,3,line,33)
+	set list=list_$listbuild(data)
+	
+	set data=$zutil(84,16,3,line,50)
+	// convert clock/CPU time to seconds
+	set data=$select(data=0:0,1:$fnumber(data/1000000,"",6))
+	set list=list_$listbuild(data)
+	
+	set data=$zutil(84,16,3,line,51)
+	// convert clock/CPU time to seconds
+	set data=$select(data=0:0,1:$fnumber(data/1000000,"",6))
+	set list=list_$listbuild(data)	
+	
+	do stream.Clear()
+	do outStream.Clear()
+		
+	do stream.WriteLine(routine.ReadLine())
+	
+	do colorer.Color(stream,outStream)
+	
+	set codeLine = $replace($replace($replace(outStream.ReadLine(),"\","\\"), $CHAR(09), "\t"), """", "\""")
+	
+	set list=list_$listbuild(codeLine)
+	
+	set totalData(line+1) = list
+	}
+	
+	 set json = "["
+	 
+	 for line=1:1:lines {
+		set list = totalData(line) 
+	 	set json = json_"{""RtnLine"":"""_$li(list,1)_""",""Time"":"""
+	 					_$li(list,2)_""",""TotalTime"":"""
+	 					_$li(list,3)_""",""Line"":"""
+	 					_$li(list,4)_"""},"			
+	 }
+	 
+	 if (json '= "[") { set json = $extract(json,1,*-1)_"]" }
+	 else { set json = "" }
+	 
+	 return json
+  		
+  </script>
+
+</html>]]></CSP>
+</Export>
