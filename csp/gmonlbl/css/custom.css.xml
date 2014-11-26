@@ -12,7 +12,7 @@
 
 .navbar {
     margin-bottom: 1px !important;    
-}
+} 
 
 .status {
     display: block;
@@ -32,12 +32,12 @@
 /* Popup styles */
 
 .startPopup {
-  width:590px;
-  float:left;
+  width: 595px;
+  float: left;
   height: 30px;
   position: absolute;
-  left: 215px;
-  display:none;
+  left: 198px;
+  display: none;
 }
 
 .startPopup .searchInput {
@@ -63,6 +63,13 @@
       font-weight:bold;
       text-shadow:0 0px 2px rgba(0,0,0,0.5);
       line-height:40px;
+      text-align: center;
+      cursor: default;
+      -moz-user-select: none;
+      -khtml-user-select: none;
+      -webkit-user-select: none;
+      -o-user-select: none;
+      user-select: none;
     }
 
 .searchInput>.btn {
@@ -121,13 +128,17 @@
 
 /* Table styles */
 
-.tblSummaryContainer {
+#tblSummary tr {
+    cursor: pointer;
+}
+
+.tblContainer {
     width: 80%;
     margin: auto;
     margin-top: 80px;
 }
 
-th:hover {
+#tblSummary th:hover {
     background-color: #D1CEED;
     cursor: pointer;
 }
@@ -147,7 +158,7 @@ th {
 }
 
 tbody tr {
-  counter-increment : rownum ; 
+  counter-increment : rownum ;
 }
 tbody { 
   counter-reset: rownum; 
@@ -157,16 +168,27 @@ tbody {
   content: counter(rownum) " "; 
 }
 
-#tblSummary th, #tblSummary td:first-child, #tblSummary td:nth-child(2) {
-    text-align: center;    
-}
-
-#tblSummary td:nth-child(3), #tblSummary td:nth-child(4), #tblSummary td:nth-child(5) {
-    text-align: right; 
-}
-
 #tblSummary th:first-child:hover {
     cursor: default;
+}
+
+#tblRoutineDetails td.rownums:before { 
+  content: counter(rownum) " "; 
+}
+
+#tblRoutineDetails td:nth-child(1) {
+     width: 20px;   
+}
+
+#tblRoutineDetails td:nth-child(5) {
+     width: 720px !important;   
+}
+
+td pre {
+    margin: 0;   
+    padding: 0;
+    background-color: transparent;
+    border: none;
 }
 
 /* ---------------------------- */
@@ -178,6 +200,18 @@ tbody {
 
 .hidden {
      display: none;   
+}
+
+.center-align {
+    text-align: center !important;    
+}
+
+.right-align {
+    text-align: right !important; 
+}
+
+.center-valign {
+     vertical-align: middle !important;   
 }
 /* ---------------- */]]></CSP>
 </Export>
