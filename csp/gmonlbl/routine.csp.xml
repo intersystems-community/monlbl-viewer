@@ -23,7 +23,7 @@
       				<li><input class="btn nav-btn" id="btnBack" type="button" value="Back"></li>
     			</ul>
     			<div class="pull-right">
-    				<label class="status" id="labelStatus"/>
+    				<label class="status" id="labelStatus"></label>
     			</div>
   			</div>
 		</div>

@@ -26,7 +26,7 @@
       				<li><input class="btn nav-btn" id="btnSummary" type="button" value="Summary"></li>
     			</ul>
     			<div class="pull-right">
-    				<label class="status" id="labelStatus"/>
+    				<label class="status" id="labelStatus"></label>
     			</div>
   			</div>
 		</div>
@@ -75,15 +75,13 @@
 			</table>
 		</div>
 
-	</body>
+    <script language="javascript" type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+    <script language="javascript" type="text/javascript" src="lib/bootstrap.min.js"></script>
+	<script language="javascript" type="text/javascript" src="lib/bootbox.min.js"></script>
+	<script language="javascript" type="text/javascript" src="lib/custom.js"></script>
 
-	<!-- Scripts -->
-    <script language="javascript" src="lib/jquery-1.11.1.min.js"></script>
-    <script language="javascript" src="lib/bootstrap.min.js"></script>
-	<script language="javascript" src="lib/bootbox.min.js"></script>
-	<script language="javascript" src="lib/custom.js"></script>     
     
-    <script language="javascript">
+    <script language="javascript" type="text/javascript">
 		
 		var routineList = "";
 		
@@ -123,7 +121,9 @@
 		})();
 
 		// click handler for 'Start Monitor' button in Routine patterns' popup 
-		$("#btnRoutinesPopup" ).on("click", function() {
+		$("#btnRoutinesPopup" ).click(btnRoutinesPopupClick);
+		
+		function btnRoutinesPopupClick() {
 		    if ($('#search').val() !== '') {
 		        menuBtnClick('Start', $('#search').val());
 		        $('#search').val("");	
@@ -132,11 +132,13 @@
 		        $('.emptyRoutinePatternText').text('There is no routine selected. Monitor does not started.');
 		        $('#emptyRoutinePattern').toggleClass('hidden');				
 		    }
-		    $('.startPopup').toggleClass("active");	
-		});
-
+		    $('.startPopup').toggleClass("active");
+		};
+		
+		
+		
 		// click handler for Pause/Resume button
-		$("#btnPauseResume" ).on("click", function() {
+		$("#btnPauseResume" ).click(function() {
 		    if ($("#btnPauseResume" ).val() == 'Pause') {
 		        menuBtnClick('Pause');	
 		    }
@@ -148,7 +150,7 @@
 
 
 		// click handler for Summary button
-		$("#btnSummary").on("click", btnSummaryClick);	
+		$("#btnSummary").click(btnSummaryClick);	
 		
 		function btnSummaryClick() {
 		    if (!$(".hero-unit").hasClass('hidden')) {
@@ -192,10 +194,19 @@
 		    $('#search').focus(function(){
 		        $(this.value).show();
 		    });
-
-		    $('.startPopup').on("focusout", function() { 
+		    
+		    
+		    $('#search').keyup(function(){
+    			if(event.keyCode == 13) {
+    				btnRoutinesPopupClick();
+    			}   
+		    });
+		    
+		 /*  Doesn't properly working yet except Chrome
+		    $('div.startPopup').on("focusout", function() { 
 		        $('.startPopup').toggleClass("active");
 		    });
+		 */
 
 		});
 		
@@ -601,6 +612,8 @@
 	 
 	 return json
    </script>
+
+	</body>
 
 </html>
 ]]></CSP>

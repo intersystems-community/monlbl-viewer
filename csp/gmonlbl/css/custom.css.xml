@@ -164,6 +164,7 @@ tbody {
   counter-reset: rownum; 
 }
 
+
 #tblSummary td.rownums:before { 
   content: counter(rownum) " "; 
 }
@@ -172,16 +173,24 @@ tbody {
     cursor: default;
 }
 
+#tblRoutineDetails {
+     table-layout: fixed;   
+}
+
 #tblRoutineDetails td.rownums:before { 
   content: counter(rownum) " "; 
 }
 
-#tblRoutineDetails td:nth-child(1) {
+#tblRoutineDetails th:nth-child(1) {
      width: 20px;   
 }
 
-#tblRoutineDetails td:nth-child(5) {
-     width: 720px !important;   
+#tblRoutineDetails th:nth-child(2), #tblRoutineDetails th:nth-child(3), #tblRoutineDetails th:nth-child(4) {
+     width: 100px;   
+}
+
+#tblRoutineDetails th:nth-child(5) {
+     width: 620px !important;   
 }
 
 td pre {
@@ -199,7 +208,7 @@ td pre {
 }
 
 .hidden {
-     display: none;   
+     display: none !important;   
 }
 
 .center-align {
