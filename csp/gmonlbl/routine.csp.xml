@@ -29,7 +29,7 @@
 		</div>
 		
 		<div class="tblContainer">
-			<table id="tblRoutineDetails" class="table table-bordered table-hover">
+			<table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
 				<thead>
 					<tr>
 						<th class="center-align">#</th>
@@ -70,6 +70,7 @@
 			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].Time + "</td>");
 			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].TotalTime + "</td>");
 			    tr.append("<td>" + jsonData[i].Line + "</td>");
+				
 			    $('#tblRoutineDetails').append(tr);
 			};
 		})();
@@ -83,9 +84,7 @@
    
  
    <script language="Cache" method="FetchRoutineData" arguments="rtnName:%String" returntype="%String">
- 	set totalData = ""
- 	
- 	set routine = ##class(%Library.Routine).%OpenId(rtnName)	
+ 	set totalData = ""	
  	
  	set stream = ##class(%Stream.TmpCharacter).%New()
  	set outStream = ##class(%Stream.TmpCharacter).%New()
@@ -131,8 +130,10 @@
 	
 	do stream.Clear()
 	do outStream.Clear()
-		
-	do stream.WriteLine(routine.ReadLine())
+	
+	set codeLine = $$LINE^%R(rtnName,line+1)
+			
+	do stream.WriteLine(codeLine)
 	
 	do colorer.Color(stream,outStream)
 	
