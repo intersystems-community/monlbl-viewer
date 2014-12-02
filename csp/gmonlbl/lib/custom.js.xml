@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="lib/custom.js" application="/csp/user/gmonlbl/"><![CDATA[
-// table sorting 
+// table sorting
 function tableSorting(tableId) {
 
   var grid = document.getElementById(tableId);

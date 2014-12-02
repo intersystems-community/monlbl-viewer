@@ -96,7 +96,7 @@
 
 /* -------------------------------- */
 
-.hero-unit {
+.jumbotron {
     height: 330px;  
     margin: 30px !important;
     padding-top: 150px;

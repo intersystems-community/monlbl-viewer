@@ -54,7 +54,7 @@
 			<button type="button" class="close" onclick="$('#methodError').toggleClass('hidden');">×</button>
 		</div>
 		
-		<div class="hero-unit">
+		<div class="jumbotron">
   			<h1>MONLBL Viewer</h1>
   			<p>A web tool to explore statistics of Caché Monitor</p>
 		</div>
@@ -153,8 +153,8 @@
 		$("#btnSummary").click(btnSummaryClick);	
 		
 		function btnSummaryClick() {
-		    if (!$(".hero-unit").hasClass('hidden')) {
-		        $(".hero-unit").toggleClass('hidden');
+		    if (!$(".jumbotron").hasClass('hidden')) {
+		        $(".jumbotron").toggleClass('hidden');
 		    }
 
 
@@ -289,8 +289,8 @@
 		        				$("#emptyRoutinePattern").toggleClass('hidden');
 		    				}
 
-		                    if ($(".hero-unit").hasClass('hidden')) {
-		                        $(".hero-unit").toggleClass('hidden');
+		                    if ($(".jumbotron").hasClass('hidden')) {
+		                        $(".jumbotron").toggleClass('hidden');
 		                    }
 		                }
 		            });
