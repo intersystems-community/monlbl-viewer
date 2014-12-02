@@ -196,7 +196,8 @@
 		    });
 		    
 		    
-		    $('#search').keyup(function(){
+		    $('#search').keyup(function(event){
+			    event = event || window.event //For IE
     			if(event.keyCode == 13) {
     				btnRoutinesPopupClick();
     			}   
