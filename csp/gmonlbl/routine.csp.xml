@@ -16,11 +16,11 @@
 	
 	<body>
 	
-		<div class="navbar">
-  			<div class="navbar-inner">
-    			<a class="brand" href="#">MONLBL Viewer</a>
-   				<ul class="nav">
-      				<li><input class="btn nav-btn" id="btnBack" type="button" value="Back"></li>
+		<div class="navbar navbar-default" role="navigation">
+  			<div class="container-fluid">
+    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
+   				<ul class="nav navbar-nav">
+      				<li><input class="btn navbar-btn" id="btnBack" type="button" value="Back"></li>
     			</ul>
     			<div class="pull-right">
     				<label class="status" id="labelStatus"></label>

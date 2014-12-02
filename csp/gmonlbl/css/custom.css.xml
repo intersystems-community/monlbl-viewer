@@ -2,7 +2,7 @@
 <Export generator="Cache" version="25">
 <CSP name="css/custom.css" application="/csp/user/gmonlbl/"><![CDATA[
 /* Navbar's styles */
-.nav-btn {
+.navbar-btn {
     margin-left: 7px;
     margin-right: 7px;
     padding-left: 5px;
@@ -14,16 +14,20 @@
     margin-bottom: 1px !important;    
 } 
 
+.pull-right {
+    height: 50px;   
+}
+
 .status {
-    display: block;
-    padding: 5px 20px 5px 20px; 
-    margin-top: 5px;
-    margin-left: -20px;
+    width: 250px;
+    height: 50px;
+    display: block; 
     font-size: 20px;
+    text-align: right;
     font-weight: 200;
     color: #777777;
     text-shadow: 0 1px 0 #ffffff;
-    line-height: 20px;
+    line-height: 50px;
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     cursor: default !important;
 }
@@ -75,7 +79,6 @@
 .searchInput>.btn {
       float:right;
       margin:4px 12px 0 0;
-      border:1px solid #3E559F;
       height:32px;
       @include border-radius(1em);
       &:focus {outline-width:0;}
@@ -87,7 +90,8 @@
       padding:4px 10px;
       border:1px solid #3E559F;
       width:291px;
-      height:22px;
+      height:32px;
+      border-radius: 3px;
       line-height:12px;
       font-size:12px;
       @include border-radius(1em);

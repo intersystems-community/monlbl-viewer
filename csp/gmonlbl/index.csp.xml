@@ -16,14 +16,14 @@
 	
 	<body>
 	
-		<div class="navbar">
-  			<div class="navbar-inner">
-    			<a class="brand" href="#">MONLBL Viewer</a>
-   				<ul class="nav">
-      				<li><input class="btn nav-btn" id="btnStart" type="button" value="Start"></li>
-      				<li><input class="btn nav-btn" id="btnStop" type="button" value="Stop" onclick="menuBtnClick('Stop');"></li>
-      				<li><input class="btn nav-btn" id="btnPauseResume" type="button" value="Pause"></li>
-      				<li><input class="btn nav-btn" id="btnSummary" type="button" value="Summary"></li>
+		<div class="navbar navbar-default" role="navigation">
+  			<div class="container-fluid">
+    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
+   				<ul class="nav navbar-nav">
+      				<li><input class="btn navbar-btn" id="btnStart" type="button" value="Start"></li>
+      				<li><input class="btn navbar-btn" id="btnStop" type="button" value="Stop" onclick="menuBtnClick('Stop');"></li>
+      				<li><input class="btn navbar-btn" id="btnPauseResume" type="button" value="Pause"></li>
+      				<li><input class="btn navbar-btn" id="btnSummary" type="button" value="Summary"></li>
     			</ul>
     			<div class="pull-right">
     				<label class="status" id="labelStatus"></label>
