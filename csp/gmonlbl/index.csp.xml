@@ -9,6 +9,7 @@
 		
 		<!-- CSS Initializing -->
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
     	<link rel="stylesheet" type="text/css" href="css/custom.css">
     	<link rel="stylesheet" type="text/css" href="css/non-responsive.css">
     	
@@ -20,10 +21,10 @@
   			<div class="container-fluid">
     			<a class="navbar-brand" href="#">MONLBL Viewer</a>
    				<ul class="nav navbar-nav">
-      				<li><input class="btn navbar-btn" id="btnStart" type="button" value="Start"></li>
-      				<li><input class="btn navbar-btn" id="btnStop" type="button" value="Stop" onclick="menuBtnClick('Stop');"></li>
-      				<li><input class="btn navbar-btn" id="btnPauseResume" type="button" value="Pause"></li>
-      				<li><input class="btn navbar-btn" id="btnSummary" type="button" value="Summary"></li>
+      				<li><input class="btn navbar-btn btn-default" id="btnStart" type="button" value="Start"></li>
+      				<li><input class="btn navbar-btn btn-default" id="btnStop" type="button" value="Stop" onclick="menuBtnClick('Stop');"></li>
+      				<li><input class="btn navbar-btn btn-default" id="btnPauseResume" type="button" value="Pause"></li>
+      				<li><input class="btn navbar-btn btn-default" id="btnSummary" type="button" value="Summary"></li>
     			</ul>
     			<div class="pull-right">
     				<label class="status" id="labelStatus"></label>
@@ -33,7 +34,7 @@
 		
 		<div class="startPopup">
 			<div class="searchInput">		
-				<input class="btn" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
+				<input class="btn btn-default" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
   				<input type="search" id="search" placeholder="List of routines separated by commas"/>
   				<span>Routine patterns</span>
 			</div><!--/.input -->
@@ -49,7 +50,7 @@
 			<button type="button" class="close" onclick="$('#routineNotFound').toggleClass('hidden');">×</button>
 		</div>
 		
-		<div class="alert alert-error alert-routine hidden" id="methodError">
+		<div class="alert alert-danger alert-routine hidden" id="methodError">
 			<p class="methodErrorText"></p>
 			<button type="button" class="close" onclick="$('#methodError').toggleClass('hidden');">×</button>
 		</div>
@@ -84,6 +85,7 @@
     <script language="javascript" type="text/javascript">
 		
 		var routineList = "";
+		tableSorting("tblSummary");
 		
 		(function() {
 			
@@ -156,8 +158,11 @@
 		    if (!$(".jumbotron").hasClass('hidden')) {
 		        $(".jumbotron").toggleClass('hidden');
 		    }
-
-
+			
+			if (!$("#timeCell").hasClass('asc')) {
+				$("#timeCell").toggleClass('asc');
+			}
+			
 		    if ($(".tblContainer").hasClass('hidden')) {
 		        $(".tblContainer").toggleClass('hidden');
 		    }
@@ -355,8 +360,7 @@
 		        target = target.parentNode;
 		    }      
         }); 
-		
-		tableSorting("tblSummary");
+	
 	</script>
     
 	<!-- Cache Scripts -->

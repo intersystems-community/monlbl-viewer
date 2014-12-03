@@ -9,6 +9,7 @@
 		
 		<!-- CSS Initializing -->
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
     	<link rel="stylesheet" type="text/css" href="css/custom.css">
     	<link rel="stylesheet" type="text/css" href="css/non-responsive.css">
     	
@@ -20,7 +21,7 @@
   			<div class="container-fluid">
     			<a class="navbar-brand" href="#">MONLBL Viewer</a>
    				<ul class="nav navbar-nav">
-      				<li><input class="btn navbar-btn" id="btnBack" type="button" value="Back"></li>
+      				<li><input class="btn navbar-btn btn-default" id="btnBack" type="button" value="Back"></li>
     			</ul>
     			<div class="pull-right">
     				<label class="status" id="labelStatus"></label>
