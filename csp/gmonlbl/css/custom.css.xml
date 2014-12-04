@@ -10,6 +10,17 @@
     width: 100px !important;
 }
 
+.btn-search {
+    box-shadow: none !important; 
+    background: #55ACEE !important;
+    border: none !important;
+    vertical-align: middle !important;
+    height: 28px !important;
+    color: #fff !important;
+    text-shadow: none !important;
+    margin-top: 6px !important;
+}
+
 .navbar {
     margin-bottom: 1px !important;    
 } 

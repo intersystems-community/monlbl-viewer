@@ -34,7 +34,7 @@
 		
 		<div class="startPopup">
 			<div class="searchInput">		
-				<input class="btn btn-default" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
+				<input class="btn btn-default btn-search" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
   				<input type="search" id="search" placeholder="List of routines separated by commas"/>
   				<span>Routine patterns</span>
 			</div><!--/.input -->
@@ -381,6 +381,8 @@
 	</script>
 	
 	<script language="Cache" method="StartMonitor" arguments="routineList:%String" returntype="%String">
+	
+		kill j,ctx,data,i,more,nlist,rtn,rtnname
 		
 		lock +^|"%SYS"|SYS("MON-HOLD"):3
 			
@@ -421,7 +423,8 @@
 	 		// allocate memory and initialize data structures
 	        // (switch on monitoring)
 	 		if ($zu(84,0,1,1,1,1,1,1) '= 1) {
-				return -1
+				//return -1
+				return ($zutil(84,0,4,1,1,1,1,1)_"/"_$zutil(84,0,5))
 			}
 			
 			// enable stats for all jobs
@@ -583,21 +586,35 @@
 	 kill summary
 	 
 	 
-	 set count=0
-	 
-	 set sort="" for  set sort=$order(^CacheTemp(index,sort),-1) quit:sort=""  do
-	 . set rtn="" for  set rtn=$order(^CacheTemp(index,sort,rtn)) quit:rtn=""  do
-	 . . set summary(rtn) = count, count = count + 1  
-	 . . set metric = "" for  set metric=$order(^CacheTemp(index,sort,rtn,metric),1,out) quit:metric=""  do
-	 . . . set totmetric(metric) = $get(totmetric(metric)) + out
-	 . . . // handle coverage percent
-	 . . . if metric=-3 set out=$select(out=-1:"NA",1:out), summary(rtn, "LinesCode") = out
-	 . . . if metric=-2 set out=$select(out=-1:"NA",1:out), summary(rtn, "LinesHit") = out
-	 . . . // convert clock/CPU time to seconds
-	 . . . set n="" if metric'<0 set n=$zu(84,13,11,metric)
-	 . . . if (n=50)!(n=51) set out=$select(out=0:"0"_$justify("",sp-4),1:$fnumber(out/1000000,"",6)) ; RFD057
-	 . . . // don't accumulate total time, it doesn't make sense		
-	 . . . if (n = 50) { set summary(rtn, "Time") = out }		
+	 set count = 0
+	 set sort = $order(^CacheTemp(index,""),-1)
+
+	 while (sort '= "" ) {
+		  set rtn = $order(^CacheTemp(index,sort,"")) 	  
+		  
+		  while (rtn '= "") {
+			  set summary(rtn) = count, count = count + 1  
+			  set metric = $order(^CacheTemp(index,sort,rtn,""),1,out)
+			  
+			  while (metric '= "") {
+				  set totmetric(metric) = $get(totmetric(metric)) + out
+				  // handle coverage percent
+				  if metric=-3 set out=$select(out=-1:"NA",1:out), summary(rtn, "LinesCode") = out
+				  if metric=-2 set out=$select(out=-1:"NA",1:out), summary(rtn, "LinesHit") = out
+				  // convert clock/CPU time to seconds
+				  set n="" if metric'<0 set n=$zu(84,13,11,metric)
+				  if (n=50)!(n=51) set out=$select(out=0:"0"_$justify("",sp-4),1:$fnumber(out/1000000,"",6)) ; RFD057
+				  // don't accumulate total time, it doesn't make sense		
+				  if (n = 50) { set summary(rtn, "Time") = out }
+				  
+				  set metric = $order(^CacheTemp(index,sort,rtn,metric),1,out)
+			  }
+			  
+			  set rtn = $order(^CacheTemp(index,sort,rtn))	
+		  }
+		
+		set sort = $order(^CacheTemp(index,sort),-1)
+	 }	
 	 
 	 kill ^CacheTemp(index)
  	 $$$RemoveTempNode(^CacheTemp(index))
