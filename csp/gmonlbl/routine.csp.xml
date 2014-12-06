@@ -29,7 +29,7 @@
   			</div>
 		</div>
 		
-		<div class="tblContainer">
+		<div class="tbl-container">
 			<table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
 				<thead>
 					<tr>

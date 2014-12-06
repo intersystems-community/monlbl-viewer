@@ -32,11 +32,11 @@
   			</div>
 		</div>
 		
-		<div class="startPopup">
-			<div class="searchInput">		
+		<div class="popup-start">
+			<div class="input-search">		
 				<input class="btn btn-default btn-search" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
   				<input type="search" id="search" placeholder="List of routines separated by commas"/>
-  				<span>Routine patterns</span>
+  				<span class="label-search">Routine patterns</span>
 			</div><!--/.input -->
 		</div>
 		
@@ -60,7 +60,7 @@
   			<p>A web tool to explore statistics of Caché Monitor</p>
 		</div>
 		
-		<div class="tblContainer hidden">
+		<div class="tbl-container hidden">
 			<table id="tblSummary" class="table table-bordered table-hover">
 				<thead>
 					<tr>
@@ -134,7 +134,7 @@
 		        $('.emptyRoutinePatternText').text('There is no routine selected. Monitor does not started.');
 		        $('#emptyRoutinePattern').toggleClass('hidden');				
 		    }
-		    $('.startPopup').toggleClass("active");
+		    $('.popup-start').toggleClass("active");
 		};
 		
 		
@@ -163,8 +163,8 @@
 				$("#timeCell").toggleClass('asc');
 			}
 			
-		    if ($(".tblContainer").hasClass('hidden')) {
-		        $(".tblContainer").toggleClass('hidden');
+		    if ($(".tbl-container").hasClass('hidden')) {
+		        $(".tbl-container").toggleClass('hidden');
 		    }
 
 		    var jsonData = #server(..GetSummary())#;	
@@ -192,7 +192,7 @@
 		// rotines pattern popup's handlers
 		$(function() {
 		    $("#btnStart" ).click(function() {
-		        $('.startPopup').toggleClass("active");
+		        $('.popup-start').toggleClass("active");
 		        $('#search').focus();
 		    });
 
@@ -209,8 +209,8 @@
 		    });
 		    
 		 /*  Doesn't properly working yet except Chrome
-		    $('div.startPopup').on("focusout", function() { 
-		        $('.startPopup').toggleClass("active");
+		    $('div.popup-start').on("focusout", function() { 
+		        $('.popup-start').toggleClass("active");
 		    });
 		 */
 
@@ -279,8 +279,8 @@
 
 		                    $("#tblSummaryBody tr").remove();
 
-		                    if (!$(".tblContainer").hasClass('hidden')) {
-		                        $(".tblContainer").toggleClass('hidden');
+		                    if (!$(".tbl-container").hasClass('hidden')) {
+		                        $(".tbl-container").toggleClass('hidden');
 		                    }
 		                    
 		                    if (!$("#methodError").hasClass('hidden')) {
