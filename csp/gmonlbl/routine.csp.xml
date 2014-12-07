@@ -17,33 +17,46 @@
 	
 	<body>
 	
-		<div class="navbar navbar-default" role="navigation">
-  			<div class="container-fluid">
-    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
-   				<ul class="nav navbar-nav">
-      				<li><input class="btn navbar-btn btn-default" id="btnBack" type="button" value="Back"></li>
-    			</ul>
-    			<div class="pull-right">
-    				<label class="status" id="labelStatus"></label>
-    			</div>
-  			</div>
+		<!-- main-container for "sticky" footer -->
+		<div class="main-container">
+		
+			<!-- Navbar section start-->
+			<div class="navbar navbar-default" role="navigation">
+	  			<div class="container-fluid">
+	    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
+	   				<ul class="nav navbar-nav">
+	      				<li><button class="btn navbar-btn btn-default" id="btnBack" type="button">Back</button></li>
+	    			</ul>
+	  			</div>
+			</div>
+			<!-- Navbar section end-->
+			
+			<!-- Details table section start -->
+			<div class="tbl-container">
+				<table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
+					<thead>
+						<tr>
+							<th class="center-align">#</th>
+							<th data-type="number" class="asc center-align">RtnLine</th>
+							<th data-type="number" class="asc center-align">Time</th>
+							<th data-type="number" class="asc center-align">Total Time</th> 
+							<th data-type="string" class="asc center-align" id="timeCell">Code</th>
+						</tr>
+					</thead>
+					<tbody id="tblRoutineDetailsBody">
+					</tbody>	
+				</table>
+			</div>	
+			<!-- Details table section end -->	
+			
+			<!-- push for "sticky" footer -->
+			<div class="push"></div>
+		
 		</div>
 		
-		<div class="tbl-container">
-			<table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
-				<thead>
-					<tr>
-						<th class="center-align">#</th>
-						<th data-type="number" class="asc center-align">RtnLine</th>
-						<th data-type="number" class="asc center-align">Time</th>
-						<th data-type="number" class="asc center-align">Total Time</th> 
-						<th data-type="string" class="asc center-align" id="timeCell">Code</th>
-					</tr>
-				</thead>
-				<tbody id="tblRoutineDetailsBody">
-				</tbody>	
-			</table>
-		</div>		
+		<!-- Footer section start -->
+		<div class="footer">© 2014 SS23, InterSystems</div>	
+		<!-- Footer section end -->
 		
 	</body>
 
@@ -59,6 +72,7 @@
 		var jsonData = (#server(..FetchRoutineData(v))#);	
 		jsonData = $.parseJSON(jsonData);
 		
+		// On page load
 		(function() {
 			var tr;
 
@@ -145,6 +159,8 @@
 	set totalData(line+1) = list
 	}
 	
+	
+	// Assamble JSON	
 	 set json = "["
 	 
 	 for line=1:1:lines {
@@ -157,6 +173,7 @@
 	 
 	 if (json '= "[") { set json = $extract(json,1,*-1)_"]" }
 	 else { set json = "" }
+	 
 	 
 	 return json
   		

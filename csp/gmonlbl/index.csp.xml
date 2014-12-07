@@ -10,79 +10,100 @@
 		<!-- CSS Initializing -->
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
-    	<link rel="stylesheet" type="text/css" href="css/custom.css">
     	<link rel="stylesheet" type="text/css" href="css/non-responsive.css">
+    	<link rel="stylesheet" type="text/css" href="css/custom.css">
     	
 	</head>
 	
 	<body>
-	
-		<div class="navbar navbar-default" role="navigation">
-  			<div class="container-fluid">
-    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
-   				<ul class="nav navbar-nav">
-      				<li><input class="btn navbar-btn btn-default" id="btnStart" type="button" value="Start"></li>
-      				<li><input class="btn navbar-btn btn-default" id="btnStop" type="button" value="Stop" onclick="menuBtnClick('Stop');"></li>
-      				<li><input class="btn navbar-btn btn-default" id="btnPauseResume" type="button" value="Pause"></li>
-      				<li><input class="btn navbar-btn btn-default" id="btnSummary" type="button" value="Summary"></li>
-    			</ul>
-    			<div class="pull-right">
-    				<label class="status" id="labelStatus"></label>
-    			</div>
-  			</div>
+		
+		<!-- main-container for "sticky" footer -->
+		<div class="main-container">
+		
+			<!-- Navbar section start-->
+			<div class="navbar navbar-default" role="navigation">
+	  			<div class="container-fluid">
+	    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
+	   				<ul class="nav navbar-nav">
+	      				<li><button class="btn navbar-btn btn-default" id="btnStart" type="button">Start</button></li>
+	      				<li><button class="btn navbar-btn btn-default" id="btnStop" type="button" onclick="menuBtnClick('Stop');">Stop</button></li>
+	      				<li><button class="btn navbar-btn btn-default" id="btnPauseResume" type="button">Pause</button></li>
+	      				<li><button class="btn navbar-btn btn-default" id="btnSummary" type="button">Summary</button></li>
+	    			</ul>
+	      			<label class="navbar-status pull-right" id="labelStatus"></label>
+	  			</div>
+			</div>
+			<!-- Navbar section end -->
+			
+			<!-- Search (Routines pattern) popup section start --> 
+			<div class="search-popup search-container" id="searchPopup">
+				<div class="search-input">		
+					<button class="btn btn-default search-btn" type="button" id="btnRoutinesPopup">Start Monitor</button>
+	  				<input type="search" id="search" placeholder="List of routines separated by commas"/>
+	  				<span class="search-label">Routine patterns</span>
+				</div>
+			</div>
+			<!-- Search popup section end -->
+			
+			
+			<!-- Alerts section start -->
+			<div class="alert alert-info alert-routine hidden" id="emptyRoutinePattern">
+				<p id="emptyRoutinePatternText"></p>
+				<button type="button" class="close" onclick="$('#emptyRoutinePattern').toggleClass('hidden');">×</button>
+			</div>
+			
+			<div class="alert alert-info alert-routine hidden" id="routineNotFound">
+				Routine not found.
+				<button type="button" class="close" onclick="$('#routineNotFound').toggleClass('hidden');">×</button>
+			</div>
+			
+			<div class="alert alert-danger alert-routine hidden" id="methodError">
+				<p id="methodErrorText"></p>
+				<button type="button" class="close" onclick="$('#methodError').toggleClass('hidden');">×</button>
+			</div>
+			<!-- Alerts section end -->
+			
+			<!-- Jumbotron section start -->
+			<div class="js-jumbotron jumbotron">
+	  			<h1>MONLBL Viewer</h1>
+	  			<p>A web tool to explore statistics of Caché Monitor</p>
+			</div>
+			<!-- Jumbotron section end -->
+			
+			<!-- Summary table section start -->
+			<div class="tbl-container hidden" id="tblSummaryContainer">
+				<table id="tblSummary" class="table table-bordered table-hover">
+					<thead>
+						<tr>
+							<th class="center-align">#</th>
+							<th data-type="string" class="asc center-align">Routine</th>
+							<th data-type="number" class="asc center-align">Lines</th>
+							<th data-type="number" class="asc center-align">Lines Hit</th> 
+							<th data-type="number" class="asc center-align" id="timeCell">Time</th>
+						</tr>
+					</thead>
+					<tbody id="tblSummaryBody">
+					</tbody>	
+				</table>
+			</div>
+			<!-- Summary table section end -->
+			
+			<!-- push for "sticky" footer -->
+			<div class="push"></div>
+		
 		</div>
 		
-		<div class="popup-start">
-			<div class="input-search">		
-				<input class="btn btn-default btn-search" type="button" id="btnRoutinesPopup" value="Start Monitor"/>
-  				<input type="search" id="search" placeholder="List of routines separated by commas"/>
-  				<span class="label-search">Routine patterns</span>
-			</div><!--/.input -->
-		</div>
+		<!-- Footer section start -->
+		<div class="footer">© 2014 SS23, InterSystems</div>	
+		<!-- Footer section end -->
 		
-		<div class="alert alert-info alert-routine hidden" id="emptyRoutinePattern">
-			<p class="emptyRoutinePatternText"></p>
-			<button type="button" class="close" onclick="$('#emptyRoutinePattern').toggleClass('hidden');">×</button>
-		</div>
-		
-		<div class="alert alert-info alert-routine hidden" id="routineNotFound">
-			Routine not found.
-			<button type="button" class="close" onclick="$('#routineNotFound').toggleClass('hidden');">×</button>
-		</div>
-		
-		<div class="alert alert-danger alert-routine hidden" id="methodError">
-			<p class="methodErrorText"></p>
-			<button type="button" class="close" onclick="$('#methodError').toggleClass('hidden');">×</button>
-		</div>
-		
-		<div class="jumbotron">
-  			<h1>MONLBL Viewer</h1>
-  			<p>A web tool to explore statistics of Caché Monitor</p>
-		</div>
-		
-		<div class="tbl-container hidden">
-			<table id="tblSummary" class="table table-bordered table-hover">
-				<thead>
-					<tr>
-						<th class="center-align">#</th>
-						<th data-type="string" class="asc center-align">Routine</th>
-						<th data-type="number" class="asc center-align">Lines</th>
-						<th data-type="number" class="asc center-align">Lines Hit</th> 
-						<th data-type="number" class="asc center-align" id="timeCell">Time</th>
-					</tr>
-				</thead>
-				<tbody id="tblSummaryBody">
-				</tbody>	
-			</table>
-		</div>
-
-    <script language="javascript" type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
-    <script language="javascript" type="text/javascript" src="lib/bootstrap.min.js"></script>
-	<script language="javascript" type="text/javascript" src="lib/bootbox.min.js"></script>
-	<script language="javascript" type="text/javascript" src="lib/custom.js"></script>
-
+		<!-- Scripts -->
+    	<script language="javascript" type="text/javascript" src="lib/jquery-1.11.1.min.js"></script>
+    	<script language="javascript" type="text/javascript" src="lib/bootstrap.min.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/bootbox.min.js"></script>
+		<script language="javascript" type="text/javascript" src="lib/custom.js"></script>
     
-    <script language="javascript" type="text/javascript">
+    	<script language="javascript" type="text/javascript">
 		
 		var routineList = "";
 		tableSorting("tblSummary");
@@ -131,10 +152,10 @@
 		        $('#search').val("");	
 		    }
 		    else {
-		        $('.emptyRoutinePatternText').text('There is no routine selected. Monitor does not started.');
+		        $('#emptyRoutinePatternText').text('There is no routine selected. Monitor does not started.');
 		        $('#emptyRoutinePattern').toggleClass('hidden');				
 		    }
-		    $('.popup-start').toggleClass("active");
+		    $('#searchPopup').toggleClass("active");
 		};
 		
 		
@@ -155,16 +176,16 @@
 		$("#btnSummary").click(btnSummaryClick);	
 		
 		function btnSummaryClick() {
-		    if (!$(".jumbotron").hasClass('hidden')) {
-		        $(".jumbotron").toggleClass('hidden');
+		    if (!$(".js-jumbotron").hasClass('hidden')) {
+		        $(".js-jumbotron").toggleClass('hidden');
 		    }
 			
 			if (!$("#timeCell").hasClass('asc')) {
 				$("#timeCell").toggleClass('asc');
 			}
 			
-		    if ($(".tbl-container").hasClass('hidden')) {
-		        $(".tbl-container").toggleClass('hidden');
+		    if ($("#tblSummaryContainer").hasClass('hidden')) {
+		        $("#tblSummaryContainer").toggleClass('hidden');
 		    }
 
 		    var jsonData = #server(..GetSummary())#;	
@@ -192,7 +213,7 @@
 		// rotines pattern popup's handlers
 		$(function() {
 		    $("#btnStart" ).click(function() {
-		        $('.popup-start').toggleClass("active");
+		        $('#searchPopup').toggleClass("active");
 		        $('#search').focus();
 		    });
 
@@ -209,8 +230,8 @@
 		    });
 		    
 		 /*  Doesn't properly working yet except Chrome
-		    $('div.popup-start').on("focusout", function() { 
-		        $('.popup-start').toggleClass("active");
+		    $('#searchPopup').on("focusout", function() { 
+		        $('#searchPopup').toggleClass("active");
 		    });
 		 */
 
@@ -237,7 +258,7 @@
 
 		             // it's ok. Status contains number of selected routines.
 		             if (+status > 0) {
-		                $('.emptyRoutinePatternText').text(status + ' routine(s) added to selection.');
+		                $('#emptyRoutinePatternText').text(status + ' routine(s) added to selection.');
 		                if ($('#emptyRoutinePattern').hasClass('hidden')) {
 		                    $('#emptyRoutinePattern').toggleClass('hidden');	
 		                }			 
@@ -255,12 +276,12 @@
 		            }
 		            // memory allocation failed
 		            else if (+status == -1) {
-		                $('.methodErrorText').text('Memory allocation failed.');
+		                $('#methodErrorText').text('Memory allocation failed.');
 		                $('#methodError').toggleClass('hidden');	
 		            }
 		            // couldn't enable stats  collection
 		            else if (+status == -2) {
-		                $('.methodErrorText').text("Couldn't enable stats collection");
+		                $('#methodErrorText').text("Couldn't enable stats collection");
 		                $('#methodError').toggleClass('hidden');
 		            }
 		            break;
@@ -279,8 +300,8 @@
 
 		                    $("#tblSummaryBody tr").remove();
 
-		                    if (!$(".tbl-container").hasClass('hidden')) {
-		                        $(".tbl-container").toggleClass('hidden');
+		                    if (!$("#tblSummaryContainer").hasClass('hidden')) {
+		                        $("#tblSummaryContainer").toggleClass('hidden');
 		                    }
 		                    
 		                    if (!$("#methodError").hasClass('hidden')) {
@@ -295,8 +316,8 @@
 		        				$("#emptyRoutinePattern").toggleClass('hidden');
 		    				}
 
-		                    if ($(".jumbotron").hasClass('hidden')) {
-		                        $(".jumbotron").toggleClass('hidden');
+		                    if ($(".js-jumbotron").hasClass('hidden')) {
+		                        $(".js-jumbotron").toggleClass('hidden');
 		                    }
 		                }
 		            });
@@ -305,15 +326,15 @@
 		            var status = #server(..PauseMonitor())#;
 
 		            if (+status == -1) {
-		                $('.methodErrorText').text('Somebody else is using Monitor');
+		                $('#methodErrorText').text('Somebody else is using Monitor');
 		                $('#methodError').toggleClass('hidden');				
 		            }	
 		            else if (+status == -2) {
-		                $('.methodErrorText').text('Monitor is not running');
+		                $('#methodErrorText').text('Monitor is not running');
 		                $('#methodError').toggleClass('hidden');				
 		            }	
 		            else if (+status == -3) {
-		                $('.methodErrorText').text('Monitor is already paused');
+		                $('#methodErrorText').text('Monitor is already paused');
 		                $('#methodError').toggleClass('hidden');				
 		            }
 
@@ -324,15 +345,15 @@
 		            var status = #server(..ResumeMonitor())#;
 
 		            if (+status == -1) {
-		                $('.methodErrorText').text('Somebody else is using Monitor');
+		                $('#methodErrorText').text('Somebody else is using Monitor');
 		                $('#methodError').toggleClass('hidden');				
 		            }	
 		            else if (+status == -2) {
-		                $('.methodErrorText').text('Monitor is not running');
+		                $('#methodErrorText').text('Monitor is not running');
 		                $('#methodError').toggleClass('hidden');				
 		            }	
 		            else if (+status == -3) {
-		                $('.methodErrorText').text('Monitor is already running');
+		                $('#methodErrorText').text('Monitor is already running');
 		                $('#methodError').toggleClass('hidden');				
 		            }
 
@@ -344,7 +365,7 @@
 		    }; 
 		};
 		
-
+		// Summary table click handler
 		$("#tblSummary").on("click", function(e) {
 		    var target = e && e.target || window.event.srcElement;
 

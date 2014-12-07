@@ -1,87 +1,119 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="css/custom.css" application="/csp/user/gmonlbl/"><![CDATA[
+/* apply a natural box layout model to all elements, but allowing components to change */
+html, body {
+  height: 100%;
+  padding: 0;
+}
+
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+.main-container {
+  min-height: 100%;
+  /* equal to footer height */
+  margin-bottom: -45px; 
+}
+
+.push, .footer {
+  height:45px;
+}
+
+.footer {
+  background: #FBFBFB;
+  color: #bbb;
+  text-align: center;
+  padding-top: 13px;
+}
+
 /* Navbar's styles */
 .navbar-btn {
-    margin-left: 7px;
-    margin-right: 7px;
-    padding-left: 5px;
-    padding-right: 5px;
-    width: 100px;
+  margin-left: 7px;
+  margin-right: 7px;
+  padding-left: 5px;
+  padding-right: 5px;
+  width: 100px;
 }
 
 .navbar {
-    margin-bottom: 1px;    
+  margin-bottom: 1px;    
 } 
 
-.pull-right {
-    height: 50px;   
-}
-
-.status {
-    width: 250px;
-    height: 50px;
-    display: block; 
-    font-size: 20px;
-    text-align: right;
-    font-weight: 200;
-    color: #777777;
-    text-shadow: 0 1px 0 #ffffff;
-    line-height: 50px;
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    cursor: default;
+.navbar-status {
+  display: block;
+  width: 250px;
+  height: 46px;
+  line-height: 46px;
+  font-size: 20px;
+  text-align: right;
+  font-weight: 200;
+  color: #777777;
+  text-shadow: 0 1px 0 #ffffff;
+  font-family: Helvetica,Arial,sans-serif;
+  cursor: default;
 }
 /*-----------------------*/
 
 
 /* Popup styles */
-.popup-start {
-  width: 575px;
+.search-container {
   float: left;
-  height: 30px;
-  position: absolute;
   left: 172px;
+  position: absolute;
   display: none;
 }
 
-.input-search {
-    background: linear-gradient(to bottom,#6485F5 0%,#275AF2 100%);
-    height: 40px;
-    border-bottom: 1px solid #1E4CE8;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
+.search-popup {
+  width: 575px;
+  height: 30px;
+}
+
+.search-input {
+  background: linear-gradient(to bottom,#6485F5 0%,#275AF2 100%);
+  height: 40px;
+  border-bottom: 1px solid #1E4CE8;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
     
-.label-search {
-      float: right;
-      display: inline-block;
-      color: #fff;
-      font-size: 16px;
-      font-weight: bold;
-      text-shadow: 0 0px 2px rgba(0,0,0,0.5);
-      line-height: 40px;
-      text-align: center;
-      cursor: default;
-      -moz-user-select: none;
-      -khtml-user-select: none;
-      -webkit-user-select: none;
-      -o-user-select: none;
-      user-select: none;
-    }
+.search-label {
+  float: right;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0,0,0,0.5);
+  line-height: 40px;
+  text-align: center;
+  cursor: default;
+  -ms-user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
 
-.btn-search {
+.search-btn {
     float:right;
     background: #55ACEE;
     color: #fff;
     text-shadow: none;
     height:32px;
     margin:4px 12px 0 0;
-    @include border-radius(3px);
+    border-radius:3px;
     box-shadow: none; 
     border: none;
-    vertical-align: middle; 
-    &:focus {outline-width:0;}
+    vertical-align: middle;
+}
+
+.search-btn:focus {
+  outline-width:0;
 }
 
 #search {
@@ -94,7 +126,10 @@
     border-radius: 3px;
     line-height: 12px;
     font-size: 12px;
-    &:focus {outline-width:0;}
+}
+
+#search:focus {
+  outline-width:0;
 }
 
 /* -------------------------------- */
@@ -146,8 +181,8 @@
 }
 
 #tblSummary th:first-child:hover {
-    background-color: #fff;
-    cursor: default;
+  background-color: #fff;
+  cursor: default;
 }
 
 #tblSummary td.rownums:before { 
@@ -156,6 +191,7 @@
 
 th {
   text-align: center;
+  -ms-user-select: none;
   -moz-user-select: none;
   -khtml-user-select: none;
   -webkit-user-select: none;
@@ -164,30 +200,30 @@ th {
 }
 
 tbody tr {
-  counter-increment : rownum ;
+    counter-increment : rownum ;
 }
 tbody { 
-  counter-reset: rownum; 
+    counter-reset: rownum; 
 }
 
 #tblRoutineDetails {
-     table-layout: fixed;   
+    table-layout: fixed;   
 }
 
 #tblRoutineDetails td.rownums:before { 
-  content: counter(rownum) " "; 
+    content: counter(rownum) " "; 
 }
 
 #tblRoutineDetails th:nth-child(1) {
-     width: 50px;   
+    width: 50px;   
 }
 
 #tblRoutineDetails th:nth-child(2), #tblRoutineDetails th:nth-child(3), #tblRoutineDetails th:nth-child(4) {
-     width: 100px;   
+    width: 100px;   
 }
 
 #tblRoutineDetails th:nth-child(5) {
-     width: 620px;   
+    width: 620px;   
 }
 
 td pre {
@@ -217,7 +253,13 @@ td pre {
 }
 
 .center-valign {
-     vertical-align: middle;   
+    vertical-align: middle;   
+}
+
+input::-moz-focus-inner,
+button::-moz-focus-inner {
+    padding: 0;
+    border: 0;
 }
 /* ---------------- */]]></CSP>
 </Export>
