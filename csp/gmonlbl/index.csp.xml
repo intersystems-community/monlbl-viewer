@@ -445,7 +445,7 @@
 	        // (switch on monitoring)
 	 		if ($zu(84,0,1,1,1,1,1,1) '= 1) {
 				//return -1
-				return ($zutil(84,0,4,1,1,1,1,1)_"/"_$zutil(84,0,5))
+				return -1
 			}
 			
 			// enable stats for all jobs
