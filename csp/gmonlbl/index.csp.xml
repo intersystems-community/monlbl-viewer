@@ -701,7 +701,7 @@
         }
         
         if ( ( n = 50 ) || ( n = 51 ) ) {
-          set out = $select( out = 0:"0"_$justify( "", sp - 4 ), 1:$fnumber( out / 1000000, "", 6 ))
+          set out = $select( out = 0:"0", 1:$fnumber( out / 1000000, "", 6 ))
         }
         
         // don't accumulate total time, it doesn't make sense
