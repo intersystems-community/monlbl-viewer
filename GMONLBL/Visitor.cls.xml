@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="GMONLBL.Visitor">
+<Super>%Compiler.Util.Visitor</Super>
+<TimeCreated>63529,60189.828226</TimeCreated>
+
+<Property name="RoutineName">
+<Type>%String</Type>
+</Property>
+
+<Method name="v99">
+<FormalSpec>parseTree:%Compiler.Util.ParseTree,visit:%Integer,nodePtr:%Integer,parentPtr:%Integer</FormalSpec>
+<Implementation><![CDATA[
+	set routineName = $li($$$CPTNODEANN(parseTree.treePtr, nodePtr, 1), 1)
+	
+	if ('$FIND(..RoutineName, routineName_"|")) {
+		if ($find(routineName, "^")) {
+			set ..RoutineName = ..RoutineName_routineName_"|"
+		}
+	}
+]]></Implementation>
+</Method>
+</Class>
+</Export>

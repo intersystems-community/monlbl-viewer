@@ -4,180 +4,320 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
-		<title>	Cache Server Page </title>
-		
-		<!-- CSS Initializing -->
-		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-		<link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
-    	<link rel="stylesheet" type="text/css" href="css/custom.css">
-    	<link rel="stylesheet" type="text/css" href="css/non-responsive.css">
-    	
-	</head>
-	
-	<body>
-	
-		<!-- main-container for "sticky" footer -->
-		<div class="main-container">
-		
-			<!-- Navbar section start-->
-			<div class="navbar navbar-default" role="navigation">
-	  			<div class="container-fluid">
-	    			<a class="navbar-brand" href="#">MONLBL Viewer</a>
-	   				<ul class="nav navbar-nav">
-	      				<li><button class="btn navbar-btn btn-default" id="btnBack" type="button">Back</button></li>
-	    			</ul>
-	  			</div>
-			</div>
-			<!-- Navbar section end-->
-			
-			<!-- Details table section start -->
-			<div class="tbl-container">
-				<table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
-					<thead>
-						<tr>
-							<th class="center-align">#</th>
-							<th data-type="number" class="asc center-align">RtnLine</th>
-							<th data-type="number" class="asc center-align">Time</th>
-							<th data-type="number" class="asc center-align">Total Time</th> 
-							<th data-type="string" class="asc center-align" id="timeCell">Code</th>
-						</tr>
-					</thead>
-					<tbody id="tblRoutineDetailsBody">
-					</tbody>	
-				</table>
-			</div>	
-			<!-- Details table section end -->	
-			
-			<!-- push for "sticky" footer -->
-			<div class="push"></div>
-		
-		</div>
-		
-		<!-- Footer section start -->
-		<div class="footer">© 2014 SS23, InterSystems</div>	
-		<!-- Footer section end -->
-		
-	</body>
+  <head>
+    <title> Cache Server Page </title>
 
-	<!-- Scripts -->
+    <!-- CSS Initializing -->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
+    <link rel="stylesheet" type="text/css" href="css/non-responsive.css">
+
+  </head>
+
+  <body>
+
+    <!-- main-container for "sticky" footer -->
+    <div class="main-container">
+
+      <!-- Navbar section start-->
+      <div class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">MONLBL Viewer</a>
+          <ul class="nav navbar-nav">
+            <li><button class="btn navbar-btn btn-default" id="btnBack" type="button">Index</button></li>
+          </ul>
+        </div>
+      </div>
+      <!-- Navbar section end-->
+
+      <!-- Details table section start -->
+      <div class="tbl-container">
+        <table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
+          <thead>
+            <tr>
+              <th class="numbering-cell center-align">#</th>
+              <th class="number-cell asc center-align">RtnLine</th>
+              <th class="number-cell asc center-align">Time</th>
+              <th class="number-cell asc center-align">Total Time</th> 
+              <th class="asc center-align" id="timeCell">Code</th>
+              <th class="calls-cell">Calls</th>
+            </tr>
+          </thead>
+          <tbody id="tblRoutineDetailsBody">
+          </tbody>
+        </table>
+      </div>
+      <!-- Details table section end -->
+
+      <!-- push for "sticky" footer -->
+      <div class="push"></div>
+
+    </div>
+
+    <!-- Footer section start -->
+    <div class="footer">© 2014 SS23, InterSystems</div>
+    <!-- Footer section end -->
+
+
+    <!-- Scripts -->
     <script language="javascript" src="lib/jquery-1.11.1.min.js"></script>
     <script language="javascript" src="lib/bootstrap.min.js"></script>
-	<script language="javascript" src="lib/custom.js"></script>     
-    
-   	<script language="javascript">
-   		
-   		var v = "#(..EscapeHTML(%request.Get("name",1)))#";
-		
-		var jsonData = (#server(..FetchRoutineData(v))#);	
-		jsonData = $.parseJSON(jsonData);
-		
-		// On page load
-		(function() {
-			var tr;
+    <script language="javascript" src="lib/custom.js"></script>
 
-			$("#tblRoutineDetails tbody tr").remove();
+    <script language="javascript">
 
-			for (var i = 0; i < jsonData.length; i++) {
-			    tr = $('<tr/>');
-			    tr.append("<td class=" +"\"center-valign center-align rownums\""+">" + "</td>");
-			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].RtnLine + "</td>");
-			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].Time + "</td>");
-			    tr.append("<td class="+"\"center-valign right-align\""+">" + jsonData[i].TotalTime + "</td>");
-			    tr.append("<td>" + jsonData[i].Line + "</td>");
-				
-			    $('#tblRoutineDetails').append(tr);
-			};
-		})();
-		
-   		// Back button handler
-   		$("#btnBack").on("click", function(){
-   			window.location.href = 'index.csp';
-   		});
-   		
-   </script>
-   
- 
-   <script language="Cache" method="FetchRoutineData" arguments="rtnName:%String" returntype="%String">
- 	set totalData = ""	
- 	
- 	set stream = ##class(%Stream.TmpCharacter).%New()
- 	set outStream = ##class(%Stream.TmpCharacter).%New()
- 	
- 	set colorer = ##class(%SyntaxColor).%New()
- 	
-	// find routine
-	set rtnNum = $zutil(84,16)
-	set found = 0
-	
-	for rtn=1:1:rtnNum {
-		if (rtnName = $zutil(84,16,2,rtn))
-		{ 
-			set found = 1
-			quit
-		}
-	}
-	
-	if ('found) return ""
-	
-	// collect routine data
-	set lines = $zutil(84,16,1,rtn)
-	
-	if lines = 0 return ""
-	
-	for line=0:1:(lines-1) {		
-	kill map
-		
-	set list = ""
-	
-	set data=$zutil(84,16,3,line,33)
-	set list=list_$listbuild(data)
-	
-	set data=$zutil(84,16,3,line,50)
-	// convert clock/CPU time to seconds
-	set data=$select(data=0:0,1:$fnumber(data/1000000,"",6))
-	set list=list_$listbuild(data)
-	
-	set data=$zutil(84,16,3,line,51)
-	// convert clock/CPU time to seconds
-	set data=$select(data=0:0,1:$fnumber(data/1000000,"",6))
-	set list=list_$listbuild(data)	
-	
-	do stream.Clear()
-	do outStream.Clear()
-	
-	set codeLine = $$LINE^%R(rtnName,line+1)
-			
-	do stream.WriteLine(codeLine)
-	
-	do colorer.Color(stream,outStream)
-	
-	set codeLine = $replace($replace($replace(outStream.ReadLine(),"\","\\"), $CHAR(09), "\t"), """", "\""")
-	
-	set list=list_$listbuild(codeLine)
-	
-	set totalData(line+1) = list
-	}
-	
-	
-	// Assamble JSON	
-	 set json = "["
-	 
-	 for line=1:1:lines {
-		set list = totalData(line) 
-	 	set json = json_"{""RtnLine"":"""_$li(list,1)_""",""Time"":"""
-	 					_$li(list,2)_""",""TotalTime"":"""
-	 					_$li(list,3)_""",""Line"":"""
-	 					_$li(list,4)_"""},"			
-	 }
-	 
-	 if (json '= "[") { set json = $extract(json,1,*-1)_"]" }
-	 else { set json = "" }
-	 
-	 
-	 return json
-  		
+    // variable declaration
+    var
+    // current routine
+    routine,
+    // JSON accured from server response
+    jsonData;
+
+    routine = '#(..EscapeHTML( %request.Get("name",1) ))#';
+
+    jsonData = #server(..FetchRoutineData( routine ))#;
+
+    if ( jsonData ) {
+      jsonData = $.parseJSON( jsonData );
+
+      // On page load
+      (function() {
+        // variable declaration
+        var
+          // table row
+          tr,
+          // array of dropdown list elements
+          options,
+          // table cell
+          td,
+          // counters
+          i, j,
+          // <ul> imlements dropdown
+          dropdown,
+          // <li> implementsdropdown head
+          dropdownEl,
+          // <ul> implements body of dropdown list
+          list,
+          // element of options array
+          opt,
+          // <li> element implemnts element of dropdown body
+          el,
+          // <a> implements a h-link wraps the el
+          link,
+          // regular expression for routine name
+          rRtn,
+          // array of 'exec' method results
+          rtnArr;
+
+        $('#tblRoutineDetails tbody tr').remove();
+
+        for ( i = 0; i < jsonData.length; i++ ) {
+
+          tr = $( '<tr/>' );
+          tr.append( '<td class=' +'\"center-valign center-align rownums\"'+'>' + '</td>' );
+          tr.append( '<td class='+'\"center-valign right-align\"'+'>' + jsonData[ i ].RtnLine + '</td>' );
+          tr.append( '<td class='+'\"center-valign right-align\"'+'>' + jsonData[ i ].Time + '</td>' );
+          tr.append( '<td class='+'\"center-valign right-align\"'+'>' + jsonData[ i ].TotalTime + '</td>' );
+          tr.append( '<td>' + jsonData[ i ].Line + '</td>' );
+
+          options = '';
+          options = jsonData[ i ].Calls.split( '|' );
+
+          td = document.createElement( 'td' );
+
+          if ( (options.length) && (options[ 0 ] !== '') ) {
+
+            dropdown = document.createElement( 'ul' );
+            $(dropdown).addClass( 'rtn-list-dropdown' );
+
+            dropdownEl = document.createElement( 'li' );
+            dropdownEl.textContent = '>>'
+
+            list = document.createElement( 'ul' );
+            $(list).addClass( 'rtn-list' );
+
+            for ( j = 0; j < options.length; j++ ) {
+
+              opt = options[ j ];
+
+              el = document.createElement( 'li' );
+
+              $(el).addClass( 'rtn-list-el' );
+
+              link = document.createElement( 'a' );
+              link.textContent = opt
+
+              rRtn = /\^[\w_%\.]+/i;
+
+              rtnArr = rRtn.exec( opt );
+
+              if ( rtnArr !== null ) {
+                opt = rtnArr[ 0 ];
+              }
+
+              link.href = 'routine.csp?name=' + opt.slice( 1 );
+
+              el.appendChild( link );
+              list.appendChild( el );
+            }
+
+            dropdownEl.appendChild( list );
+            dropdown.appendChild( dropdownEl );
+            td.appendChild( dropdown );
+          }
+
+          tr.append(td);
+
+          $('#tblRoutineDetails').append( tr );
+        };
+      })();
+
+    }
+
+    $( document ).ready(function () {
+      $('.rtn-list-dropdown li').hover(
+        function () {
+          //show submenu
+          $('ul', this).show();
+      }, function () {
+          //hide submenu
+          $('ul', this).hide();
+      });
+    });
+
+
+  // Back button handler
+  $('#btnBack').on('click', function() {
+      window.location.href = 'index.csp';
+  });
+
   </script>
+
+
+   <script language="Cache" method="FetchRoutineData" arguments="rtnName:%String" returntype="%String">
+    kill totalData
+
+    set stream = ##class(%Stream.TmpCharacter).%New()
+    set outStream = ##class(%Stream.TmpCharacter).%New()
+    set colorer = ##class(%SyntaxColor).%New()
+    set visitor = ##class(GMONLBL.Visitor).%New()
+
+    // find routine
+    set rtnNum = $zutil( 84, 16 )
+    set found = 0
+
+    for rtn = 1 : 1 : rtnNum {
+      if ( rtnName = $zutil( 84, 16, 2, rtn ) ) {
+        set found = 1
+        quit
+      }
+    }
+
+    if ( 'found ) {
+      return ""
+    }
+
+    // collect routine data
+    set lines = $zutil( 84, 16, 1, rtn )
+
+    if (lines = 0 ) {
+      return ""
+    }
+
+    for line = 0 : 1 : ( lines - 1 ) {
+      kill map
+      set list = ""
+
+      set data = $zutil( 84, 16, 3, line, 33 )
+      set list = list_$listbuild( data )
+
+      // line time
+      set data = $zutil( 84, 16, 3, line, 50 )
+      // convert clock/CPU time to seconds
+      set data = $select( data = 0:0, 1:$fnumber( data / 1000000, "", 6 ) )
+      set list = list_$listbuild( data )
+
+      set localTime = data
+
+      // total time
+      set data = $zutil( 84, 16, 3, line, 51 )
+      // convert clock/CPU time to seconds
+      set data = $select( data = 0:0, 1:$fnumber( data / 1000000, "", 6) )
+      set list = list_$listbuild( data )
+
+      set totalTime = data
+
+      do stream.Clear()
+      do outStream.Clear()
+
+      set codeLine = $$LINE^%R( rtnName, line + 1 )
+
+      set visitor.RoutineName = ""
+      set rtnNamesList = ""
+
+      // Missing lines without routine calls
+      if ( totalTime > localTime ) {
+
+        set tree = ##class(%Compiler.COS.ParseTree).Parse( codeLine, ,.sc )
+
+        if ( 'sc ) {
+          set tree = ""
+        }
+
+        if ( tree '= "" ) {
+
+          do tree.accept( visitor )
+
+          set rtnNamesList = visitor.RoutineName
+
+          if ( rtnNamesList '= "" ) {
+            set rtnNamesList = $extract( rtnNamesList, 1, *-1 )
+          }
+
+        }
+
+      }
+
+      do stream.WriteLine( codeLine )
+      do colorer.Color( stream, outStream )
+
+      set codeLine = $replace( outStream.ReadLine(), "\", "\\" )
+      set codeLine = $replace( codeLine, $char( 09 ), "\t" )
+      set codeLine = $replace( codeLine, """", "\""" )
+
+      set list = list_$listbuild( codeLine )
+      set list = list_$listbuild( rtnNamesList )
+
+      set totalData( line + 1 ) = list
+    }
+
+
+    // Assambling JSON
+    set json = "["
+
+    for line = 1 : 1 : lines {
+      set list = totalData( line )
+      set json = json_"{""RtnLine"":"""_$li( list, 1 )_
+                      """,""Time"":"""_$li( list, 2 )_
+                      """,""TotalTime"":"""_$li( list, 3 )_
+                      """,""Line"":"""_$li( list, 4 )_
+                      """,""Calls"":"""_$li( list, 5 )_
+                      """},"
+    }
+
+    if ( json '= "[" ) {
+      set json = $extract( json, 1, *-1 )_"]"
+    }
+    else {
+      set json = ""
+    }
+
+    return json
+
+  </script>
+
+  </body>
 
 </html>]]></CSP>
 </Export>

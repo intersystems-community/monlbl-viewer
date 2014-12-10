@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <CSP name="css/custom.css" application="/csp/user/gmonlbl/"><![CDATA[
-/* apply a natural box layout model to all elements, but allowing components to change */
+
 html, body {
   height: 100%;
-  padding: 0;
+  padding: 0 !important;
 }
 
+/* apply a natural box layout model to all elements, but allowing components to change */
 html {
   box-sizing: border-box;
 }
@@ -23,6 +24,7 @@ html {
 .push, .footer {
   height:45px;
 }
+
 
 .footer {
   background: #FBFBFB;
@@ -100,16 +102,16 @@ html {
 }
 
 .search-btn {
-    float:right;
-    background: #55ACEE;
-    color: #fff;
-    text-shadow: none;
-    height:32px;
-    margin:4px 12px 0 0;
-    border-radius:3px;
-    box-shadow: none; 
-    border: none;
-    vertical-align: middle;
+  float:right;
+  background: #55ACEE;
+  color: #fff;
+  text-shadow: none;
+  height:32px;
+  margin:4px 12px 0 0;
+  border-radius:3px;
+  box-shadow: none; 
+  border: none;
+  vertical-align: middle;
 }
 
 .search-btn:focus {
@@ -117,15 +119,15 @@ html {
 }
 
 #search {
-    float: right;
-    margin: 4px 12px 0 15px;
-    padding: 4px 10px;
-    border: 1px solid #3E559F;
-    width: 291px;
-    height: 32px;
-    border-radius: 3px;
-    line-height: 12px;
-    font-size: 12px;
+  float: right;
+  margin: 4px 12px 0 15px;
+  padding: 4px 10px;
+  border: 1px solid #3E559F;
+  width: 291px;
+  height: 32px;
+  border-radius: 3px;
+  line-height: 12px;
+  font-size: 12px;
 }
 
 #search:focus {
@@ -135,30 +137,30 @@ html {
 /* -------------------------------- */
 
 .jumbotron {
-    height: 330px;  
-    margin: 30px;
-    padding-top: 150px;
-    background: #fff;
+  height: 330px;  
+  margin: 30px;
+  padding-top: 150px;
+  background: #fff;
 }
 
 
 /* Alerts  styles */
 
 .alert {
-    clear:both;   
+  clear:both;   
 }
 
 .alert-routine {
-    margin-top: 20px;
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
+  margin-top: 20px;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 
 .alert p {
-    display: inline-block;
-    margin-bottom: 0;
+  display: inline-block;
+  margin-bottom: 0;
 }
 
 /* ----------------------- */
@@ -167,17 +169,17 @@ html {
 /* Table styles */
 
 .tbl-container {
-    width: 80%;
-    margin: auto;
-    margin-top: 80px;
+  width: 80%;
+  margin: auto;
+  margin-top: 80px;
 }
 
-#tblSummary {
-    cursor: pointer;
+.cursor-pointer {
+  cursor: pointer;
 }
 
-#tblSummary th:hover {
-    background-color: #d1ceed;
+.active-hover:hover {
+  background-color: #d1ceed;
 }
 
 #tblSummary th:first-child:hover {
@@ -200,66 +202,119 @@ th {
 }
 
 tbody tr {
-    counter-increment : rownum ;
+  counter-increment : rownum ;
 }
 tbody { 
-    counter-reset: rownum; 
+  counter-reset: rownum; 
 }
 
 #tblRoutineDetails {
-    table-layout: fixed;   
+  table-layout: fixed;   
 }
 
 #tblRoutineDetails td.rownums:before { 
-    content: counter(rownum) " "; 
+  content: counter(rownum) " "; 
 }
 
-#tblRoutineDetails th:nth-child(1) {
-    width: 50px;   
+.numbering-cell {
+  width: 3.625em;   
 }
 
-#tblRoutineDetails th:nth-child(2), #tblRoutineDetails th:nth-child(3), #tblRoutineDetails th:nth-child(4) {
-    width: 100px;   
+.number-cell {
+  width: 7.25em;   
 }
 
 #tblRoutineDetails th:nth-child(5) {
-    width: 620px;   
+  width: 38.75em;   
+}
+
+.calls-cell {
+  width: 7.625em;
 }
 
 td pre {
-    margin: 0;   
-    padding: 0;
-    background-color: transparent;
-    border: none;
+  margin: 0;   
+  padding: 0;
+  background-color: transparent;
+  border: none;
 }
 
 /* ---------------------------- */
 
+/* Rooutine list styles */
+
+.rtn-list-dropdown {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.rtn-list-dropdon li {
+  float: left;
+  display: block;
+  position: relative;
+  z-index: 500;
+  margin: 0 1px;  
+}
+
+
+.rtn-list {
+  position: absolute;
+  left: 0;
+  display: none;
+  margin: 0 0 0 -1px;
+  border: 1px solid #aaa;
+  padding: 0;
+  list-style: none;
+}
+
+.rtn-list-el {
+  float: left;
+  border-top: 1px solid #aaa;
+  width: 100%;
+  padding:  6px 5px;
+  background: #F5F5F5;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.rtn-list-el a {
+  display: block;
+  height: 15px;
+  color: #000;
+  text-align: left; 
+}
+
+/* --------------------- */
+
 /* General styles */
 .active {
-    display:block;
+  display:block;
 }
 
 .hidden {
-     display: none;   
+  display: none;   
 }
 
 .center-align {
-    text-align: center;    
+  text-align: center;    
 }
 
 .right-align {
-    text-align: right; 
+  text-align: right; 
 }
 
 .center-valign {
-    vertical-align: middle;   
+  vertical-align: middle;   
 }
 
 input::-moz-focus-inner,
 button::-moz-focus-inner {
-    padding: 0;
-    border: 0;
+  padding: 0;
+  border: 0;
 }
-/* ---------------- */]]></CSP>
+/* ---------------- */
+]]></CSP>
 </Export>
