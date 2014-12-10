@@ -106,19 +106,20 @@
           // <a> implements a h-link wraps the el
           link,
           // regular expression for routine name
-          rRtn,
+          rRtn = /\^[\w_%\.]+/i,
           // array of 'exec' method results
-          rtnArr;
+          rtnArr,
+          optContent;
 
         $('#tblRoutineDetails tbody tr').remove();
 
         for ( i = 0; i < jsonData.length; i++ ) {
 
           tr = $( '<tr/>' );
-          tr.append( '<td class=' +'\"center-valign center-align rownums\"'+'>' + '</td>' );
-          tr.append( '<td class='+'\"center-valign right-align\"'+'>' + jsonData[ i ].RtnLine + '</td>' );
-          tr.append( '<td class='+'\"center-valign right-align\"'+'>' + jsonData[ i ].Time + '</td>' );
-          tr.append( '<td class='+'\"center-valign right-align\"'+'>' + jsonData[ i ].TotalTime + '</td>' );
+          tr.append( '<td class=' + '\"center-valign center-align rownums\"' + '>' + '<a name = "' + +(i+1) + '">' + '</td>' );
+          tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].RtnLine + '</td>' );
+          tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].Time + '</td>' );
+          tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].TotalTime + '</td>' );
           tr.append( '<td>' + jsonData[ i ].Line + '</td>' );
 
           options = '';
@@ -144,19 +145,32 @@
               el = document.createElement( 'li' );
 
               $(el).addClass( 'rtn-list-el' );
-
+              
               link = document.createElement( 'a' );
-              link.textContent = opt
+              
+              optContent = opt.split("~");
 
-              rRtn = /\^[\w_%\.]+/i;
-
-              rtnArr = rRtn.exec( opt );
-
-              if ( rtnArr !== null ) {
-                opt = rtnArr[ 0 ];
+              if ( optContent.length > 1) {
+                link.textContent = optContent[ 0 ] + ":: " + optContent[ 2 ]; 
               }
+              else {
+                link.textContent = optContent
+              }
+    
+              if ( optContent.length === 1) {
+                  rtnArr = rRtn.exec( optContent[ 0 ] );
+                  
+                  if ( rtnArr !== null ) {
+                    optContent[ 0 ] = rtnArr[ 0 ];
+                  }
+              } 
 
-              link.href = 'routine.csp?name=' + opt.slice( 1 );
+              if (optContent[ 0 ].slice( 0, 1 ) === "^" ) {
+                link.href = 'routine.csp?name=' + optContent[ 0 ].slice( 1 );
+              }
+              else {
+                link.href = 'routine.csp?name=' + optContent[ 0 ] + "#" + (optContent[ 1 ] - 1);
+              }
 
               el.appendChild( link );
               list.appendChild( el );
@@ -175,17 +189,20 @@
 
     }
 
-    $( document ).ready(function () {
-      $('.rtn-list-dropdown li').hover(
+    $(document).ready(function () {
+      $('.rtn-list-dropdown li').on('click',
         function () {
           //show submenu
-          $('ul', this).show();
-      }, function () {
-          //hide submenu
-          $('ul', this).hide();
-      });
+          
+          if ( $('ul', this).hasClass('active') ) {
+            $('ul', this).toggleClass('active');
+          }
+          else {
+            $('.rtn-list').removeClass('active');
+            $('ul', this).toggleClass('active');
+          }
+       });
     });
-
 
   // Back button handler
   $('#btnBack').on('click', function() {
@@ -254,6 +271,8 @@
       set codeLine = $$LINE^%R( rtnName, line + 1 )
 
       set visitor.RoutineName = ""
+      set visitor.Classes = ""
+      set visitor.Methods = ""
       set rtnNamesList = ""
 
       // Missing lines without routine calls
@@ -264,13 +283,31 @@
         if ( 'sc ) {
           set tree = ""
         }
-
+        
+        kill classList
+        kill methodList
+        kill rtnNamesList
+        
         if ( tree '= "" ) {
 
           do tree.accept( visitor )
 
           set rtnNamesList = visitor.RoutineName
+          
+          set classList = visitor.Classes
+          set methodList = visitor.Methods
 
+          if ( $listlength( classList ) ) {
+            for k = 1 : 1 : $listlength( classList ) {
+              do ##class(%Studio.Debugger).INTLine( $li( classList, k)_".CLS", $li( methodList, k ), 0, .intName, .intLine)
+              
+              if ( intName '= "" ) {
+                set rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_$li( methodList, k )_"|"
+              }
+            
+            }
+          }
+          
           if ( rtnNamesList '= "" ) {
             set rtnNamesList = $extract( rtnNamesList, 1, *-1 )
           }
