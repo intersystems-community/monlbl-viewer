@@ -1,7 +1,5 @@
 monlbl-viewer
 =============
-Description
------------
 MONLBL Viewer - a web UI for inspecting Caché Monitor (%MONLBL) results.
 
 It provides a minimal metrics for routines (Line-by-Line statistics: Time, TotalTime, Number of executions)
