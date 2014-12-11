@@ -5,8 +5,8 @@
 <Super>%Compiler.Util.Visitor</Super>
 <TimeCreated>63529,60189.828226</TimeCreated>
 
-<Property name="RoutineName">
-<Type>%String</Type>
+<Property name="Routines">
+<Type>%List</Type>
 </Property>
 
 <Property name="Classes">
@@ -42,11 +42,11 @@
 <Method name="v99">
 <FormalSpec>parseTree:%Compiler.Util.ParseTree,visit:%Integer,nodePtr:%Integer,parentPtr:%Integer</FormalSpec>
 <Implementation><![CDATA[
-  set routineName = $li( $$$CPTNODEANN( parseTree.treePtr, nodePtr, 1 ), 1 )
+  set $list( routineName, *+1 ) = $list( $$$CPTNODEANN( parseTree.treePtr, nodePtr, 1 ), 1 )
   
-  if ( '$FIND( ..RoutineName, routineName_"|" ) ) {
-    if ( $find( routineName, "^" ) ) {
-      set ..RoutineName = ..RoutineName_routineName_"|"
+  if ( '$listfind( ..Routines, routineName) ) {
+    if ( $find( $list(routineName, 1), "^" ) ) {
+      set ..Routines = ..Routines_routineName
     }
   }
 ]]></Implementation>

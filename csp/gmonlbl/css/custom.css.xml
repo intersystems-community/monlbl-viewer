@@ -2,18 +2,20 @@
 <Export generator="Cache" version="25">
 <CSP name="css/custom.css" application="/csp/user/gmonlbl/"><![CDATA[
 
-html, body {
+html,
+body {
   height: 100%;
   padding: 0 !important;
 }
 
-/* apply a natural box layout model to all elements, but allowing components to change */
-html {
-  box-sizing: border-box;
-}
-*, *:before, *:after {
-  box-sizing: inherit;
-}
+/* apply a natural box layout model to all elements,
+   but allowing components to change */
+
+html { box-sizing: border-box; }
+
+*,
+*:before,
+*:after { box-sizing: inherit; }
 
 .main-container {
   min-height: 100%;
@@ -21,10 +23,8 @@ html {
   margin-bottom: -45px; 
 }
 
-.push, .footer {
-  height:45px;
-}
-
+.push, 
+.footer { height: 45px; }
 
 .footer {
   background: #FBFBFB;
@@ -42,9 +42,7 @@ html {
   width: 100px;
 }
 
-.navbar {
-  margin-bottom: 1px;    
-} 
+.navbar { margin-bottom: 1px; } 
 
 .navbar-status {
   display: block;
@@ -59,10 +57,10 @@ html {
   font-family: Helvetica,Arial,sans-serif;
   cursor: default;
 }
-/*-----------------------*/
 
-
-/* Popup styles */
+/* ================================================
+                  Popup styles
+================================================ */
 .search-container {
   float: left;
   left: 172px;
@@ -114,9 +112,7 @@ html {
   vertical-align: middle;
 }
 
-.search-btn:focus {
-  outline-width:0;
-}
+.search-btn:focus { outline-width: 0; }
 
 #search {
   float: right;
@@ -130,25 +126,12 @@ html {
   font-size: 12px;
 }
 
-#search:focus {
-  outline-width:0;
-}
+#search:focus { outline-width: 0; }
 
-/* -------------------------------- */
-
-.jumbotron {
-  height: 330px;  
-  margin: 30px;
-  padding-top: 150px;
-  background: #fff;
-}
-
-
-/* Alerts  styles */
-
-.alert {
-  clear:both;   
-}
+/* ================================================
+                 Alerts  styles
+================================================ */
+.alert { clear: both; }
 
 .alert-routine {
   margin-top: 20px;
@@ -163,33 +146,25 @@ html {
   margin-bottom: 0;
 }
 
-/* ----------------------- */
-
-
-/* Table styles */
-
+/* ================================================
+                 Table styles
+================================================ */
 .tbl-container {
   width: 80%;
   margin: auto;
   margin-top: 80px;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
+.cursor-pointer { cursor: pointer; }
 
-.active-hover:hover {
-  background-color: #d1ceed;
-}
+.active-hover:hover { background-color: #d1ceed; }
 
 #tblSummary th:first-child:hover {
   background-color: #fff;
   cursor: default;
 }
 
-#tblSummary td.rownums:before { 
-  content: counter(rownum) " "; 
-}
+#tblSummary td.rownums:before { content: counter(rownum) " "; }
 
 th {
   text-align: center;
@@ -201,16 +176,21 @@ th {
   user-select: none;
 }
 
-tbody tr {
-  counter-increment : rownum ;
-}
-tbody { 
-  counter-reset: rownum; 
+tbody tr { counter-increment: rownum; }
+
+tbody { counter-reset: rownum; }
+
+.table>thead>tr>th, 
+.table>tbody>tr>th, 
+.table>tfoot>tr>th, 
+.table>thead>tr>td, 
+.table>tbody>tr>td, 
+.table>tfoot>tr>td {
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
-#tblRoutineDetails {
-  table-layout: fixed;   
-}
+#tblRoutineDetails { table-layout: fixed; }
 
 #tblRoutineDetails td.rownums:before { 
   content: counter(rownum) " "; 
@@ -221,11 +201,11 @@ tbody {
 }
 
 .number-cell {
-  width: 7.25em;   
+  width: 7.25em;
 }
 
-#tblRoutineDetails th:nth-child(5) {
-  width: 38.75em;   
+.code-cell {
+  width: 38.75em; 
 }
 
 .calls-cell {
@@ -239,10 +219,9 @@ td pre {
   border: none;
 }
 
-/* ---------------------------- */
-
-/* Rooutine list styles */
-
+/* ================================================
+              Routine list styles
+================================================ */
 .rtn-list-dropdown {
   margin: 0;
   padding: 0;
@@ -251,21 +230,21 @@ td pre {
   position: relative;
 }
 
-.rtn-list-dropdon li {
+.rtn-list-dropdown li {
   float: left;
   display: block;
-  position: relative;
-  z-index: 500;
-  margin: 0 1px;  
+  position: relative; 
 }
 
 
 .rtn-list {
   position: absolute;
+  border-left: 1px solid #aaa;
+  border-bottom: 1px solid #aaa;
+  border-right: 1px solid #aaa;
   left: 0;
   display: none;
-  margin: 0 0 0 -1px;
-  border: 1px solid #aaa;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -274,10 +253,16 @@ td pre {
   float: left;
   border-top: 1px solid #aaa;
   width: 100%;
-  padding:  6px 5px;
+  z-index: 500;
+  padding: 8px 6px;
   background: #F5F5F5;
   white-space: nowrap;
   text-align: center;
+}
+
+.rtn-list-el:hover {
+  background: #ccc;
+  color: #F5F5F5;
 }
 
 .rtn-list-el a {
@@ -287,28 +272,20 @@ td pre {
   text-align: left; 
 }
 
-/* --------------------- */
+.rtn-list-el a:hover { text-decoration: none; }
 
-/* General styles */
-.active {
-  display:block;
-}
+/* ================================================
+                General styles
+================================================ */
+.active { display:block; }
 
-.hidden {
-  display: none;   
-}
+.hidden { display: none; }
 
-.center-align {
-  text-align: center;    
-}
+.center-align { text-align: center; }
 
-.right-align {
-  text-align: right; 
-}
+.right-align { text-align: right; }
 
-.center-valign {
-  vertical-align: middle;   
-}
+.center-valign { vertical-align: middle !important; }
 
 input::-moz-focus-inner,
 button::-moz-focus-inner {
@@ -316,5 +293,11 @@ button::-moz-focus-inner {
   border: 0;
 }
 /* ---------------- */
-]]></CSP>
+
+.jumbotron {
+  height: 330px;  
+  margin: 30px;
+  padding-top: 150px;
+  background: #fff;
+}]]></CSP>
 </Export>

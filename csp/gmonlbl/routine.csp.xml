@@ -33,14 +33,14 @@
 
       <!-- Details table section start -->
       <div class="tbl-container">
-        <table id="tblRoutineDetails" class="table table-bordered table-hover .table-condensed">
+        <table id="tblRoutineDetails" class="table table-bordered table-hover table-condensed">
           <thead>
             <tr>
               <th class="numbering-cell center-align">#</th>
               <th class="number-cell asc center-align">RtnLine</th>
               <th class="number-cell asc center-align">Time</th>
               <th class="number-cell asc center-align">Total Time</th> 
-              <th class="asc center-align" id="timeCell">Code</th>
+              <th class="code-cell asc center-align">Code</th>
               <th class="calls-cell">Calls</th>
             </tr>
           </thead>
@@ -76,118 +76,125 @@
 
     routine = '#(..EscapeHTML( %request.Get("name",1) ))#';
 
-    jsonData = #server(..FetchRoutineData( routine ))#;
+    $(document).ready(function () {
 
-    if ( jsonData ) {
-      jsonData = $.parseJSON( jsonData );
+      jsonData = #server(..FetchRoutineData( routine ))#;
 
-      // On page load
-      (function() {
-        // variable declaration
-        var
-          // table row
-          tr,
-          // array of dropdown list elements
-          options,
-          // table cell
-          td,
-          // counters
-          i, j,
-          // <ul> imlements dropdown
-          dropdown,
-          // <li> implementsdropdown head
-          dropdownEl,
-          // <ul> implements body of dropdown list
-          list,
-          // element of options array
-          opt,
-          // <li> element implemnts element of dropdown body
-          el,
-          // <a> implements a h-link wraps the el
-          link,
-          // regular expression for routine name
-          rRtn = /\^[\w_%\.]+/i,
-          // array of 'exec' method results
-          rtnArr,
-          optContent;
+      if ( jsonData ) {
+        jsonData = $.parseJSON( jsonData );
 
-        $('#tblRoutineDetails tbody tr').remove();
+        // On page load
+        (function() {
+          // variable declaration
+          var
+            // table row
+            tr,
+            // array of dropdown list elements
+            options,
+            // table cell
+            td,
+            // counters
+            i, j,
+            // <ul> imlements dropdown
+            dropdown,
+            // <li> implementsdropdown head
+            dropdownEl,
+            // <ul> implements body of dropdown list
+            list,
+            // element of options array
+            opt,
+            // <li> element implemnts element of dropdown body
+            el,
+            // <a> implements a h-link wraps the el
+            link,
+            // regular expression for routine name
+            rRtn = /\^[\w_%\.]+/i,
+            // array of 'exec' method results
+            rtnArr,
+            optContent;
 
-        for ( i = 0; i < jsonData.length; i++ ) {
+          $('#tblRoutineDetails tbody tr').remove();
 
-          tr = $( '<tr/>' );
-          tr.append( '<td class=' + '\"center-valign center-align rownums\"' + '>' + '<a name = "' + +(i+1) + '">' + '</td>' );
-          tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].RtnLine + '</td>' );
-          tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].Time + '</td>' );
-          tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].TotalTime + '</td>' );
-          tr.append( '<td>' + jsonData[ i ].Line + '</td>' );
+          for ( i = 0; i < jsonData.length; i++ ) {
 
-          options = '';
-          options = jsonData[ i ].Calls.split( '|' );
+            tr = $( '<tr/>' );
+            tr.append( '<td class=' + '\"center-valign center-align rownums\"' + '>' + '<a name = "' + +(i+1) + '">' + '</td>' );
+            tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].RtnLine + '</td>' );
+            tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].Time + '</td>' );
+            tr.append( '<td class=' + '\"center-valign right-align\"' + '>' + jsonData[ i ].TotalTime + '</td>' );
+            tr.append( '<td>' + jsonData[ i ].Line + '</td>' );
 
-          td = document.createElement( 'td' );
+            options = '';
+            options = jsonData[ i ].Calls.split( '|' );
 
-          if ( (options.length) && (options[ 0 ] !== '') ) {
+            td = document.createElement( 'td' );
 
-            dropdown = document.createElement( 'ul' );
-            $(dropdown).addClass( 'rtn-list-dropdown' );
+            if ( (options.length) && (options[ 0 ] !== '') ) {
 
-            dropdownEl = document.createElement( 'li' );
-            dropdownEl.textContent = '>>'
+              dropdown = document.createElement( 'ul' );
+              $(dropdown).addClass( 'rtn-list-dropdown' );
 
-            list = document.createElement( 'ul' );
-            $(list).addClass( 'rtn-list' );
+              dropdownEl = document.createElement( 'li' );
+              dropdownEl.textContent = '>>'
 
-            for ( j = 0; j < options.length; j++ ) {
+              list = document.createElement( 'ul' );
+              $(list).addClass( 'rtn-list' );
 
-              opt = options[ j ];
+              for ( j = 0; j < options.length; j++ ) {
 
-              el = document.createElement( 'li' );
+                opt = options[ j ];
 
-              $(el).addClass( 'rtn-list-el' );
-              
-              link = document.createElement( 'a' );
-              
-              optContent = opt.split("~");
+                el = document.createElement( 'li' );
 
-              if ( optContent.length > 1) {
-                link.textContent = optContent[ 0 ] + ":: " + optContent[ 2 ]; 
+                $(el).addClass( 'rtn-list-el' );
+                
+                link = document.createElement( 'a' );
+                
+                optContent = opt.split("~");
+
+                if ( optContent.length > 1) {
+                  link.textContent = optContent[ 0 ] + ":: " + optContent[ 2 ]; 
+                }
+                else {
+                  link.textContent = optContent
+                }
+      
+                if ( optContent.length === 1) {
+                    rtnArr = rRtn.exec( optContent[ 0 ] );
+                    
+                    if ( rtnArr !== null ) {
+                      optContent[ 0 ] = rtnArr[ 0 ];
+                    }
+                } 
+
+                if (optContent.length === 1 ) {
+                  link.href = 'routine.csp?name=' + optContent[ 0 ];
+                }
+                else {
+                  link.href = 'routine.csp?name=' + optContent[ 0 ] + "#" + (optContent[ 1 ] - 1);
+                }
+
+                el.appendChild( link );
+                list.appendChild( el );
               }
-              else {
-                link.textContent = optContent
-              }
-    
-              if ( optContent.length === 1) {
-                  rtnArr = rRtn.exec( optContent[ 0 ] );
-                  
-                  if ( rtnArr !== null ) {
-                    optContent[ 0 ] = rtnArr[ 0 ];
-                  }
-              } 
 
-              if (optContent[ 0 ].slice( 0, 1 ) === "^" ) {
-                link.href = 'routine.csp?name=' + optContent[ 0 ].slice( 1 );
-              }
-              else {
-                link.href = 'routine.csp?name=' + optContent[ 0 ] + "#" + (optContent[ 1 ] - 1);
-              }
-
-              el.appendChild( link );
-              list.appendChild( el );
+              dropdownEl.appendChild( list );
+              dropdown.appendChild( dropdownEl );
+              td.appendChild( dropdown );
             }
 
-            dropdownEl.appendChild( list );
-            dropdown.appendChild( dropdownEl );
-            td.appendChild( dropdown );
-          }
+            tr.append(td);
 
-          tr.append(td);
+            $('#tblRoutineDetails').append( tr );
+          };
+        })();
 
-          $('#tblRoutineDetails').append( tr );
-        };
-      })();
+      }
+      else {
+        alert("There is no INT code.");  
+      }
 
-    }
+    });
 
     $(document).ready(function () {
       $('.rtn-list-dropdown li').on('click',
@@ -203,11 +210,16 @@
           }
        });
     });
+    
+    // Heartbeat
+    $(document).everyTime(300000, function(i) {
+      '#(..EscapeHTML( %request.Get("name",1) ))#'
+    });
 
-  // Back button handler
-  $('#btnBack').on('click', function() {
-      window.location.href = 'index.csp';
-  });
+    // Back button handler
+    $('#btnBack').on('click', function() {
+        window.location.href = 'index.csp';
+    });
 
   </script>
 
@@ -270,7 +282,7 @@
 
       set codeLine = $$LINE^%R( rtnName, line + 1 )
 
-      set visitor.RoutineName = ""
+      set visitor.Routines = ""
       set visitor.Classes = ""
       set visitor.Methods = ""
       set rtnNamesList = ""
@@ -292,22 +304,44 @@
 
           do tree.accept( visitor )
 
-          set rtnNamesList = visitor.RoutineName
+          set routines = visitor.Routines
+          
+          set rtnNamesList = ""
           
           set classList = visitor.Classes
           set methodList = visitor.Methods
+                 
+          if ( $listlength( routines ) ) {
+            for k = 1 : 1 : $listlength( routines ) {
+              
+              set routine = $piece( $list( routines, k ), "^", 2 )
+              set method = $piece( $list( routines, k ), "^", 1 )
+              
+              if ( method '= "" ) {
+                do ##class(%Studio.Debugger).INTLine( routine_".MAC", method, 0, .intName, .intLine)
 
+                if ( intName '= "" ) {
+                  set rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_method_"|"
+                } 
+              }
+              else {
+                if ( routine'= "" ) {
+                  set rtnNamesList = rtnNamesList_routine_"|"
+                }
+              }
+            } 
+          }            
+          
           if ( $listlength( classList ) ) {
             for k = 1 : 1 : $listlength( classList ) {
               do ##class(%Studio.Debugger).INTLine( $li( classList, k)_".CLS", $li( methodList, k ), 0, .intName, .intLine)
-              
+
               if ( intName '= "" ) {
                 set rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_$li( methodList, k )_"|"
-              }
+              } 
+            } 
+          }          
             
-            }
-          }
-          
           if ( rtnNamesList '= "" ) {
             set rtnNamesList = $extract( rtnNamesList, 1, *-1 )
           }
