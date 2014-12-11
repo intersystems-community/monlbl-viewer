@@ -210,11 +210,7 @@
           }
        });
     });
-    
-    // Heartbeat
-    $(document).everyTime(300000, function(i) {
-      '#(..EscapeHTML( %request.Get("name",1) ))#'
-    });
+   
 
     // Back button handler
     $('#btnBack').on('click', function() {
