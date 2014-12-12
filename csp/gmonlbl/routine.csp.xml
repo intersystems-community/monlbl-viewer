@@ -294,7 +294,6 @@
         
         kill classList
         kill methodList
-        kill rtnNamesList
         
         if ( tree '= "" ) {
 
@@ -365,13 +364,15 @@
 
     for line = 1 : 1 : lines {
       set list = totalData( line )
+      
       set json = json_"{""RtnLine"":"""_$li( list, 1 )_
-                      """,""Time"":"""_$li( list, 2 )_
-                      """,""TotalTime"":"""_$li( list, 3 )_
-                      """,""Line"":"""_$li( list, 4 )_
-                      """,""Calls"":"""_$li( list, 5 )_
-                      """},"
-    }
+                       """,""Time"":"""_$li( list, 2 )_
+                       """,""TotalTime"":"""_$li( list, 3 )_
+                       """,""Line"":"""_$li( list, 4 )_
+                       """,""Calls"":"""_$li( list, 5 )_
+                       """},"
+    }  
+
 
     if ( json '= "[" ) {
       set json = $extract( json, 1, *-1 )_"]"
