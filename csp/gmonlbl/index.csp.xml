@@ -102,325 +102,38 @@
     <script language="javascript" type="text/javascript" src="lib/bootstrap.min.js"></script>
     <script language="javascript" type="text/javascript" src="lib/bootbox.min.js"></script>
     <script language="javascript" type="text/javascript" src="lib/custom.js"></script>
-
+    
     <script language="javascript" type="text/javascript">
-    // variable declaration
-    var
-      // list of routines to monitor
-      routineList = '';
-
-    tableSorting( 'tblSummary'  );
-
-    (function() {
-
-      // variable declaration
-      var
-        monitorStatus;
-
-      // obtain monitor status
-      // 0 - stopped, 1 - running, 2 - paused
-      monitorStatus = +#(..EscapeHTML(..CheckMonitorStatus()))#;
-
-      if ( monitorStatus === 0 ) {
-        $('#btnStart').prop( 'disabled', false );
-        $('#btnStop').prop( 'disabled', true );
-        $('#btnPauseResume').prop( 'disabled', true );
-        $('#btnSummary').prop( 'disabled', true );
-        $('#labelStatus').text( 'Status: Stopped' );
-      }
-      else if ( monitorStatus === 1 ) {
-        $('#btnStart').prop( 'disabled', true );
-        $('#btnStop').prop( 'disabled', false );
-        $('#btnPauseResume').prop( 'disabled', false );
-        $('#btnSummary').prop( 'disabled', false );
-        $('#labelStatus').text( 'Status: Running' );  
-        btnSummaryClick();          
-      }
-      else if ( monitorStatus === 2 ) {
-        $('#btnStart').prop( 'disabled', true );
-        $('#btnStop').prop( 'disabled', false );
-        $('#btnPauseResume').prop( 'disabled', false );
-        $('#btnPauseResume').prop( 'value', 'Resume' );
-        $('#btnSummary').prop( 'disabled', false );
-        $('#labelStatus').text( 'Status: Paused' );
-        btnSummaryClick();
-      }
-
-    })();
-
-    // click handler for 'Start Monitor' button in Routine patterns' popup 
-    $('#btnRoutinesPopup').click( btnRoutinesPopupClick );
-
-    function btnRoutinesPopupClick() {
-      if ( $('#search').val() !== '' ) {
-        menuBtnClick( 'Start', $('#search').val() );
-        $('#search').val( "" );
-      }
-      else {
-        $('#emptyRoutinePatternText').text( 'There is no routine selected. Monitor does not started.' );
-        $('#emptyRoutinePattern').toggleClass( 'hidden' );
-      }
-
-      $('#searchPopup').toggleClass( 'active' );
-    };
-
-
-    // click handler for Pause/Resume button
-    $('#btnPauseResume').click(function() {
-      if ( $('#btnPauseResume').val() == 'Pause' ) {
-        menuBtnClick( 'Pause' );  
-      }
-      else if ( $('#btnPauseResume').val() == 'Resume' ) {
-        menuBtnClick( 'Resume' ); 
-      }
-    });
-
-
-  // click handler for Summary button
-  $('#btnSummary').click( btnSummaryClick );    
-
-  function btnSummaryClick() {
-    // variable declaration
-    var
-      // JSON accured from server response
-      jsonData,
-      // table row
-      tr,
-      // counter
-      i;
-
-    if ( !$('.js-jumbotron').hasClass( 'hidden' ) ) {
-      $('.js-jumbotron').toggleClass( 'hidden' );
-    }
-
-    if ( !$('#timeCell').hasClass( 'asc' ) ) {
-      $('#timeCell').toggleClass( 'asc' );
-    }
-
-    if ( $('#tblSummaryContainer').hasClass('hidden') ) {
-      $('#tblSummaryContainer').toggleClass( 'hidden' );
-    }
-
-    jsonData = #server(..GetSummary())#;
-
-    if ( jsonData ) {
-
-      jsonData = $.parseJSON( jsonData );
-
-      $('#tblSummary tbody tr').remove();
-
-      for ( i = 0; i < jsonData.length; i++ ) {
-        tr = $( '<tr/>' );
-        tr.append( '<td class=' +'\"center-align rownums\"'+'>'+ '</td>' );
-        tr.append( '<td class='+'center-align'+'>' + jsonData[i].Routine + '</td>' );
-        tr.append( '<td class='+'right-align'+'>' + jsonData[i].LinesCode + '</td>' );
-        tr.append( '<td class='+'right-align'+'>' + jsonData[i].LinesHit + '</td>' );
-        tr.append( '<td class='+'right-align'+'>' + jsonData[i].Time + '</td>' );
-        $('#tblSummaryBody').append( tr );
-      }
-
-      $('#tblSummary').trigger( 'update' );
-      $('#timeCell').click();
-    };
-
-  }
-
-  // rotines pattern popup's handlers
-  $(function(){
-    $('#btnStart').click(function() {
-      $('#searchPopup').toggleClass( 'active' );
-      $('#search').focus();
-    });
-
-    $('#search').focus(function() {
-      $(this.value).show();
-    });
-
-
-    $('#search').keyup(function( event ) {
-      event = event || window.event //For IE
-
-      if(event.keyCode == 13) {
-        btnRoutinesPopupClick();
-      }
-
-     /*  Doesn't properly working yet except Chrome
-     $('#searchPopup').on("focusout", function() { 
-      $('#searchPopup').toggleClass("active");
-     });
-     */
-
-    });
-  });
-
-  // Menu button's click handler
-  function menuBtnClick( type, rtnNames ) {
-    // variable declaration
-    var
-      reg,
-      routineList,
-      status,
-      i;
-
-    switch ( type ) {
-
-      case 'Start':
-
-        reg = /\s*,\s*/
-        routineList = rtnNames.split( reg );
-        rtnNames = '';
-
-        for ( i = 0; i < routineList.length; i++ ) {
-          rtnNames = rtnNames + routineList[ i ] + '|';
-        }
-
-        rtnNames = rtnNames.slice( 0, -1 );
-
-        status = +#server(..StartMonitor( rtnNames ))#;
-
-        // it's ok. Status contains number of selected routines
-        if ( status > 0 ) {
-          $('#emptyRoutinePatternText').text( status + ' routine(s) added to selection.' );
-
-          if ($('#emptyRoutinePattern').hasClass( 'hidden' )) {
-            $('#emptyRoutinePattern').toggleClass( 'hidden' );
-          }
-
-          $('#btnStart').prop( 'disabled', true );
-          $('#btnStop').prop( 'disabled', false );
-          $('#btnPauseResume').prop( 'disabled', false );
-          $('#btnSummary').prop( 'disabled', false );
-          $('#labelStatus').text( 'Status: Running' );
-        }
-        // specified routine was not found
-        else if ( status == 0 ) {
-          if ($('#routineNotFound').hasClass( 'hidden' )) {
-            $('#routineNotFound').toggleClass( 'hidden' );
-          }
-        }
-        // memory allocation failed
-        else if ( status == -1 ) {
-          $('#methodErrorText').text( 'Memory allocation failed.' );
-          $('#methodError').toggleClass( 'hidden' );    
-        }
-        // couldn't enable stats  collection
-        else if ( status == -2 ) {
-          $('#methodErrorText').text( 'Couldn\'t enable stats collection' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-
-        break;
-
-      case 'Stop':
-        bootbox.confirm('It will wipe all statistics. Resume?', function( result ) {
-          if ( result ) {
-            #server(..StopMonitor())#
-
-            $('#btnStart').prop( 'disabled', false );
-            $('#btnStop').prop( 'disabled', true );
-            $('#btnPauseResume').prop( 'value', 'Pause' );
-            $('#btnPauseResume').prop( 'disabled', true );
-            $('#btnSummary').prop( 'disabled', true );
-            $('#labelStatus').text( 'Status: Stopped' );
-
-            $('#tblSummaryBody tr').remove();
-
-            if ( !$('#tblSummaryContainer' ).hasClass( 'hidden' )) {
-              $('#tblSummaryContainer').toggleClass( 'hidden' );
-            }
-              
-            if ( !$("#methodError").hasClass( 'hidden' ) ) {
-              $("#methodError").toggleClass( 'hidden' );
-            }
-
-            if ( !$("#routineNotFound").hasClass( 'hidden' ) ) {
-              $("#routineNotFound").toggleClass( 'hidden' );
-            }
-
-            if ( !$("#emptyRoutinePattern").hasClass( 'hidden' ) ) {
-              $("#emptyRoutinePattern").toggleClass( 'hidden' );
-            }
-
-            if ( $(".js-jumbotron").hasClass( 'hidden' ) ) {
-              $(".js-jumbotron").toggleClass( 'hidden' );
-             }
-          }
-        });
-
-        break;
-
-      case 'Pause':
-        status = +#server(..PauseMonitor())#;
-
-        if ( status == -1 ) {
-          $('#methodErrorText').text( 'Somebody else is using Monitor' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-        else if ( status == -2 ) {
-          $('#methodErrorText').text( 'Monitor is not running' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-        else if ( status == -3 ) {
-          $('#methodErrorText').text( 'Monitor is already paused' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-
-        $("#labelStatus").text( 'Status: Paused' );
-        $("#btnPauseResume").prop( 'value', 'Resume' );
-        break;
-
-      case 'Resume':
-        status = +#server(..ResumeMonitor())#;
-
-        if ( status == -1 ) {
-          $('#methodErrorText').text( 'Somebody else is using Monitor' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-        else if ( status == -2 ) {
-          $('#methodErrorText').text( 'Monitor is not running' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-        else if ( status == -3 ) {
-          $('#methodErrorText').text( 'Monitor is already running' );
-          $('#methodError').toggleClass( 'hidden' );
-        }
-
-        $("#labelStatus").text( 'Status: Running' );
-        $("#btnPauseResume").prop( 'value', 'Pause' );
-
-        break;
-
-      default:
-        break;
-    };
-  };
-
-  // Summary table click handler
-  $("#tblSummary").on("click", function( e ) {
+      var routineList = ''; 
+      tableSorting('tblSummary'); 
     
-    // variable declaration
-    var
-      target,
-      name;
-    
-    target = e && e.target || window.event.srcElement;
-
-    while ( target !== this  ) {
-      if ( target.tagName == 'TH' ) {
-        break;
-      }
-
-      if ( target.tagName == 'TR' ) {
-        name = target.getElementsByTagName("td")[ 1 ].innerHTML;
-        window.location.href = 'routine.csp?name=' + name;
-        break;
-      }
-
-      target = target.parentNode;
-    }
-  });
-
-</script>
+      var getMonitorStatus = function() {
+        return +#(..EscapeHTML(..CheckMonitorStatus()))#; 
+      }; 
+      
+      var getSummary = function() {
+        return #server(..GetSummary())#;  
+      };
+      
+      var startMonitor = function(rtnNames) {
+        return +#server(..StartMonitor(rtnNames))#;  
+      };
+      
+      var stopMonitor = function() {
+        return +#server(..StopMonitor())#;  
+      };
+      
+      var pauseMonitor = function() {
+        return +#server(..PauseMonitor())#;  
+      };
+      
+      var resumeMonitor = function() {
+        return +#server(..ResumeMonitor())#;  
+      };  
+   </script> 
+        
+    <script language="javascript" type="text/javascript" src="js/eventHandlers.js" async></script>
+    <script language="javascript" type="text/javascript" src="js/pageInit.js" async></script> 
 
   <!-- Cache Scripts -->
 

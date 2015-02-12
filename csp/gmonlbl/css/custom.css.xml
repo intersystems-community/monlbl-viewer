@@ -209,7 +209,7 @@ tbody { counter-reset: rownum; }
 }
 
 .calls-cell {
-  width: 7.625em;
+  width: 3.625em;
 }
 
 td pre {
@@ -254,7 +254,7 @@ td pre {
   border-top: 1px solid #aaa;
   width: 100%;
   z-index: 500;
-  padding: 8px 6px;
+  padding: 5px 6px;
   background: #F5F5F5;
   white-space: nowrap;
   text-align: center;
@@ -267,7 +267,6 @@ td pre {
 
 .rtn-list-el a {
   display: block;
-  height: 15px;
   color: #000;
   text-align: left; 
 }

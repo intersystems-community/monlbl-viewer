@@ -106,5 +106,7 @@ function tableSorting( tableId ) {
     grid.appendChild( tbody );
 
   }
-}]]></CSP>
+}
+
+]]></CSP>
 </Export>
