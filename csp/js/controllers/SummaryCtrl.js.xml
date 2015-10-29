@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/controllers/SummaryCtrl.js" application="/csp/gmonlbl/"><![CDATA[
+'use strict';
+
+function SummaryCtrl($scope, MainSrvc) {
+    /* use a shorter variable for more readable code */
+    var _s = $scope.app;
+    _s.rowCollection = [];
+    _s.displayedCollection = [].concat(_s.rowCollection);
+
+    _s.init = function () {
+        _s.getSummary();
+    };
+
+    _s.getSummary = function () {
+        MainSrvc.getSummary().then(function (data) {
+            _s.rowCollection = data;
+            _s.displayedCollection = [].concat(_s.rowCollection);
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+    $scope.$on("REFRESH", _s.init);
+
+    _s.init();
+}
+
+/* resolving minification problems */
+SummaryCtrl.$inject = ['$scope', 'MainSrvc'];
+controllersModule.controller('SummaryCtrl', SummaryCtrl);
+]]></CSP>
+</Export>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="index.csp" application="/csp/gmonlbl/"><![CDATA[
+<!doctype html>
+
+<html ng-app="app" ng-controller="MainCtrl">
+    <head>
+        <title>MONLBL Viewer 2</title>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <meta name="viewport" content="initial-scale=1" />
+        
+        <!-- CSS Initialization -->  
+        <link rel="stylesheet" type="text/css" href="css/materialize.min.css">
+        <link rel="stylesheet" type="text/css" href="css/material-design-iconic-font.min.css">
+        <link rel="stylesheet" type="text/css" href="css/custom.css">
+
+        <script language="javascript">
+            // REST web-app name, global variable
+            var RESTWebApp = {appName : "/monlbl/rest"};
+        </script>
+    </head>
+
+    <body>
+
+        <header>
+            <div class="navbar-fixed">
+                <nav>
+                    <div class="nav-wrapper indigo">
+                        <span class="brand-logo">MONLBL Viewer</span>
+                        <!-- Control buttons -->
+                        <div class="control-buttons">
+                            <button class="waves-effect waves-light btn accent"
+                                    ng-disabled="app.isStartCard || app.statusCode !== 0" disabled
+                                    ng-click="app.onStart()"
+                                    >Start
+                            </button>
+
+                            <button class="waves-effect waves-light btn accent"
+                                    ng-disabled="app.statusCode === 0" disabled
+                                    ng-click="app.onStopMonitor()"
+                                    >Stop
+                            </button>
+
+                            <button class="waves-effect waves-light btn accent"
+                                    ng-hide="app.statusCode == 2"
+                                    ng-disabled="app.statusCode !== 1" disabled 
+                                    ng-click="app.onPauseMonitor()"
+                                    >Pause
+                            </button>
+
+                            <button class="waves-effect waves-light btn accent"
+                                    ng-show="app.statusCode == 2"
+                                    ng-disabled="app.statusCode !== 2" disabled
+                                    ng-click="app.onResumeMonitor()"
+                                    >Resume
+                            </button>
+
+                            <button class="waves-effect waves-light btn accent"
+                                    ng-disabled="app.statusCode === 0" disabled
+                                    ng-click="app.onSummary()"
+                                    >Summary
+                            </button>
+
+                            <button class="waves-effect waves-light btn accent"
+                                    ng-disabled="app.statusCode === 0" disabled
+                                    ng-click="app.onResetStats()"
+                                    >Reset
+                            </button>
+                        </div>
+                        <div class="right status">
+                            <!-- Status of Caché Monitor -->
+                            <span id="status" ng-bind-template="Status: {{app.status || 'None'}}"></span>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Loading template -->
+            <div ng-view></div>
+        </main>
+
+        <!-- Footer --> 
+        <footer id="footer" class="center">
+            © 2015 SS23, InterSystems
+        </footer>
+
+        <!-- Hooking scripts -->
+        <script language="javascript" src="libs/es6-collections.js"></script>
+
+        <script language="javascript" src="libs/angular.min.js"></script>
+
+        <script language="javascript" src="libs/angular-route.min.js"></script>
+        <script language="javascript" src="libs/angular-cookies.min.js"></script>
+        <script language="javascript" src="libs/ui-bootstrap-custom-tpls-0.12.0.min.js"></script>
+
+        <script language="javascript" src="js/app.js"></script>
+
+        <script language="javascript" src="js/services/RESTSrvc.js"></script>
+        <script language="javascript" src="js/services/MainSrvc.js"></script>
+
+        <script language="javascript" src="js/controllers/MainCtrl.js"></script>
+        <script language="javascript" src="js/controllers/SummaryCtrl.js"></script>
+        <script language="javascript" src="js/controllers/RoutineCtrl.js"></script>
+
+        <script language="javascript" src="libs/jquery-1.11.2.min.js"></script>  
+        <script language="javascript" src="libs/bootstrap.min.js"></script>
+
+        <script language="javascript" src="libs/materialize.min.js"></script>
+
+        <script language="javascript" src="libs/smart-table.min.js"></script>
+
+    </body>
+</html>
+]]></CSP>
+</Export>

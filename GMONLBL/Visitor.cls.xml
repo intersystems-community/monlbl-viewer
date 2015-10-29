@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="GMONLBL.Visitor">
+<IncludeCode>%occCPT,%occCPTCOS,%occCPTCOSD</IncludeCode>
+<Super>%Compiler.Util.Visitor</Super>
+<TimeCreated>63529,60189.828226</TimeCreated>
+
+<Property name="Routines">
+<Type>%List</Type>
+</Property>
+
+<Property name="Classes">
+<Type>%List</Type>
+</Property>
+
+<Property name="Methods">
+<Type>%List</Type>
+</Property>
+
+<Method name="IfExistsClass">
+<FormalSpec>className:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set result = ""
+    set systemName = ""
+     
+    if ( ( $extract( className, 1 ) = "%" ) && ( $find( className, "." ) = 0 ) ) {
+        set systemName = "%Library."_$EXTRACT( className, 2, * )
+    }
+    
+    for possibleName = className, "User."_className, systemName {
+        if ( ( possibleName '= "" ) && ( ##class(%Dictionary.CompiledClass).%ExistsId( possibleName ) ) ) {
+            set result = possibleName
+            quit
+        }
+    }
+
+    quit result
+]]></Implementation>
+</Method>
+
+<Method name="v99">
+<FormalSpec>parseTree:%Compiler.Util.ParseTree,visit:%Integer,nodePtr:%Integer,parentPtr:%Integer</FormalSpec>
+<Implementation><![CDATA[
+  set $list( routineName, *+1 ) = $list( $$$CPTNODEANN( parseTree.treePtr, nodePtr, 1 ), 1 )
+  
+  if ( '$listfind( ..Routines, routineName) ) {
+    if ( $find( $list(routineName, 1), "^" ) ) {
+      set ..Routines = ..Routines_routineName
+    }
+  }
+]]></Implementation>
+</Method>
+
+<Method name="v41">
+<Description>
+ListClassNameComponents(41): child list-ClassNameComponent
+NAMES</Description>
+<FormalSpec>parseTree:%Compiler.Util.ParseTree,visit:%Integer,nodePtr:%Integer,parentPtr:%Integer</FormalSpec>
+<Implementation><![CDATA[
+    if ( visit = 0 ) {
+      return ""
+    }
+    
+    set className = ""
+    
+    for i = 1 : 1 : $$$CPTNODECHILDCOUNT( parseTree.treePtr, nodePtr ) {
+      set classNameComponentInd = $$$CPTNODECHILD( parseTree.treePtr, nodePtr, i )
+      set $piece( className, "." , i ) = $$$CPTNODEANN( parseTree.treePtr, classNameComponentInd, 1 )
+    }
+    
+    set $list( foundClassName, *+1 ) = ..IfExistsClass( className )
+    
+    if ( $listlength( foundClassName ) ) {
+      set ..Classes = ..Classes_foundClassName
+    }
+]]></Implementation>
+</Method>
+
+<Method name="v34">
+<FormalSpec>parseTree:%Compiler.Util.ParseTree,visit:%Integer,nodePtr:%Integer,parentPtr:%Integer</FormalSpec>
+<Implementation><![CDATA[
+  if ( visit = 0 ) {
+    quit
+  }
+  
+  set $li(methodName, *+1 ) = $$$CPTNODEANN( parseTree.treePtr, nodePtr, 1 )
+  
+  if ( $listlength( methodName ) ) {
+      set ..Methods = ..Methods_methodName
+    }
+]]></Implementation>
+</Method>
+</Class>
+</Export>

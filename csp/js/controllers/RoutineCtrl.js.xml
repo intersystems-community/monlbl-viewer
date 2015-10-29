@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/controllers/RoutineCtrl.js" application="/csp/gmonlbl/"><![CDATA[
+'use strict';
+
+function RoutineCtrl($scope, $routeParams, MainSrvc) {
+    $scope.app = {};
+    /* use a shorter variable for more readable code */
+    var _s = $scope.app;
+    _s.rowCollection = [];
+    _s.displayedCollection = [].concat(_s.rowCollection);
+
+    _s.init = function () {
+        _s.getRtnData();
+    };
+
+    _s.getRtnData = function () {
+        if (!$routeParams.name) {
+            return;
+        }
+
+        _s.isLoading = true;
+
+        MainSrvc.getRoutineData($routeParams.name).then(function (data) {
+            _s.rowCollection = data;
+            _s.displayedCollection = [].concat(_s.rowCollection);
+            _s.isLoading = false;
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+                _s.isLoading = false;
+            });
+    };
+
+    $scope.$on("REFRESH", _s.init);
+
+    _s.init();
+}
+
+/* resolving minification problems */
+RoutineCtrl.$inject = ['$scope', '$routeParams', 'MainSrvc'];
+controllersModule.controller('RoutineCtrl', RoutineCtrl);
+]]></CSP>
+</Export>

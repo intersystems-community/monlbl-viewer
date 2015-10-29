@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/services/RESTSrvc.js" application="/csp/gmonlbl/"><![CDATA[
+'use strict';
+
+function RESTSrvc($http, $q) {
+    return {
+        getPromise: function (config) {
+            var deferred = $q.defer();
+
+            $http(config)
+                .success(function (data) {
+                    deferred.resolve(data);
+                })
+                .error(function (data, status, headers, config) {
+                    deferred.reject(data, status, headers, config);
+                });
+
+            return deferred.promise;
+        }
+    };
+}
+
+/* resolving minification problems */
+RESTSrvc.$inject = ['$http', '$q'];
+servicesModule.factory('RESTSrvc', RESTSrvc);
+]]></CSP>
+</Export>

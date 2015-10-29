@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/services/MainSrvc.js" application="/csp/gmonlbl/"><![CDATA[
+'use strict';
+
+function MainSrvc(RESTSrvc) {
+    return {
+        getStatus: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/status'});
+        },
+        getRoutineList: function (list) {
+            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/routines', data: {routineList: list}});
+        },
+        startMonitor: function (list) {
+            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/start', data: {routineList: list}});
+        },
+        stopMonitor: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/stop'});
+        },
+        resumeMonitor: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/resume'});
+        },
+        pauseMonitor: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/pause'});
+        },
+        getSummary: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/summary'});
+        },
+        resetStats: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/reset'});
+        },
+        getRoutineData: function (rtnName) {
+            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/routine', data: {rtnName: rtnName}});
+        }
+    };
+}
+
+/* resolving minification problems */
+MainSrvc.$inject = ['RESTSrvc'];
+servicesModule.factory('MainSrvc', MainSrvc);
+]]></CSP>
+</Export>

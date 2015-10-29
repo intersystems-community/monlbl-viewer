@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/controllers/MainCtrl.js" application="/csp/gmonlbl/"><![CDATA[
+'use strict';
+
+function MainCtrl($scope, $location, MainSrvc) {
+    $scope.app = {};
+    /* use a shorter variable for more readable code */
+    var _s = $scope.app;
+    _s.status = "";
+    _s.statusCode = 0;
+    _s.currentMask = "";
+    _s.selectedRoutines = [];
+    _s.selectedRoutinesSet = new Set();
+    _s.routineListLoading = false;
+    _s.isStartCard = false;
+
+    /* This is main controller initialization method */
+    _s.init = function () {
+        _s.getStatus();
+
+        $("body").keydown(function (event) {
+            _s.onGlobalKeyDown(event);
+        });
+
+        setTimeout(function () {
+            $("#version").animate({opacity: 1}, 1200);
+        }, 1200);
+    };
+
+    /* This method retrieves MONLBL status from server */
+    _s.getStatus = function () {
+        MainSrvc.getStatus().then(function (data) {
+            _s.statusCode = +data.status;
+
+            switch (+data.status) {
+            case 0:
+                _s.status = 'Stopped';
+                _s.statusCode = 0;
+                break;
+            case 1:
+                _s.status = 'Started';
+                _s.statusCode = 1;
+                break;
+            case 2:
+                _s.status = 'Paused';
+                _s.statusCode = 2;
+                break;
+            default:
+                _s.status = 'Error';
+                break;
+            }
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+    /* EVENT HANDLER
+    // fires when 'Start' button on the main page pressed */
+    _s.onStart = function () {
+        $('.jumbo').fadeOut();
+        $('.start-card').fadeIn();
+        $('#rtn-mask').focus();
+
+        /* set it to indicate, that Start Card is on the screen */
+        _s.isStartCard = true;
+    };
+
+    /* EVENT HANDLER
+    // fires when 'Cancel' button on start card pressed */
+    _s.onCancel = function () {
+        $('.jumbo').fadeIn();
+        $('.start-card').fadeOut();
+
+        /* reset the values */
+        _s.currentMask = "";
+        _s.selectedRoutines = [];
+        _s.selectedRoutinesSet = new Set();
+
+        /* set it to indicate, that Start Card is not on the screen */
+        _s.isStartCard = false;
+        console.log(_s.isStartCard);
+    };
+
+
+    /* EVENT HANDLER
+    // fires when 'Add Routine' button pressed */
+    _s.onAddRoutine = function () {
+
+        var
+            reg,
+            routineList,
+            rtnNames;
+
+        /* don't fire it if nothing to send */
+        if (!_s.currentMask) {
+            return;
+        }
+
+        _s.routineListLoading = true;
+
+        /* use regular expression to handle spaces between rotine masks */
+        reg = /\s*,\s*/;
+        routineList = _s.currentMask.split(reg);
+        rtnNames = routineList.join('|');
+
+        MainSrvc.getRoutineList(rtnNames).then(function (data) {
+
+            var
+                routines,
+                routinesCount,
+                i;
+
+            if (_s.isStartCard) {
+                routines = data.routineList.split('|');
+                routinesCount = data.status;
+
+                for (i = 0; i < routines.length; i += 1) {
+                    /*  Cycle through all the gotten routines
+                    //  and filter already existing */
+                    if (!_s.selectedRoutinesSet.has(routines[i]) && (routines[i] !== "")) {
+                        _s.selectedRoutinesSet.add(routines[i]);
+                        _s.selectedRoutines.push(routines[i]);
+                    } else {
+                        routinesCount -= 1;
+                    }
+                }
+            }
+
+            _s.currentMask = "";
+        })
+            .then(function () {
+                _s.routineListLoading = false;
+            })
+            .catch(function () {
+                _s.routineListLoading = false;
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+
+    /* EVENT HANDLER
+    // fires when 'Add Routine' button pressed */
+    _s.onStartMonitor = function () {
+        var rtnNames = _s.selectedRoutines.join('|');
+        MainSrvc.startMonitor(rtnNames).then(
+            function () {
+                _s.getStatus();
+                _s.onCancel();
+                _s.isStartCard = false;
+                _s.goRoute('/summary');
+            }
+        )
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+    /* EVENT HANDLER
+    // fires when 'Stop' button pressed */
+    _s.onStopMonitor = function () {
+        _s.getStatus();
+
+        if (_s.statusCode === 0) {
+            _s.goRoute('/main');
+            return;
+        }
+
+        MainSrvc.stopMonitor().then(function () {
+            _s.getStatus();
+            _s.goRoute('/main');
+
+            setTimeout(function () {
+                $("#version").animate({opacity: 1}, 1200);
+            }, 1200);
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+
+    /* EVENT HANDLER
+    // fires when 'Resume' button pressed */
+    _s.onResumeMonitor = function () {
+        MainSrvc.resumeMonitor().then(function () {
+            _s.getStatus();
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+
+    /* EVENT HANDLER
+    // fires when 'Pause' button pressed */
+    _s.onPauseMonitor = function () {
+        MainSrvc.pauseMonitor().then(function () {
+            _s.getStatus();
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+    /* EVENT HANDLER
+    // fires when 'Reset' button pressed */
+    _s.onResetStats = function () {
+        MainSrvc.resetStats().then(function () {
+            _s.getStatus();
+            $scope.$broadcast("REFRESH");
+        })
+            .catch(function () {
+                alert("Sorry. Unable to get status, try again.");
+            });
+    };
+
+    /* EVENT HANDLER
+    // fires when 'Summary' button pressed */
+    _s.onSummary = function () {
+        $scope.$broadcast("REFRESH");
+        _s.goRoute('/summary');
+    };
+
+
+    /* EVENT HANDLER
+    // fires on key is up when start card input focused */
+    _s.onMaskKeyUp = function (event) {
+        if (+event.keyCode === 13) {
+            _s.onAddRoutine();
+        }
+    };
+
+    _s.deleteRoutineFromList = function (index) {
+        _s.selectedRoutines.splice(index, 1);
+    };
+
+
+    _s.goRoute = function (path) {
+        $location.path(path);
+    };
+
+    /* GLOBAL KEYBOARD EVENT HANDLER */
+    _s.onGlobalKeyDown = function (event) {
+        if (+event.keyCode === 27) {
+            if (_s.isStartCard) {
+                $('#start-card-cancel').click();
+            }
+        } else if (+event.keyCode === 13) {
+            if ((!_s.isStartCard) && (!$('#start').prop('disabled')) && (_s.statusCode === 0)) {
+                _s.onStart();
+            } else if (_s.isStartCard && (_s.selectedRoutines.length > 0) && ($('#rtn-mask').text() === '')) {
+                _s.onStartMonitor();
+            }
+        }
+    };
+
+    _s.init();
+
+}
+
+/* resolving minification problems */
+MainCtrl.$inject = ['$scope', '$location', 'MainSrvc'];
+controllersModule.controller('MainCtrl', MainCtrl);
+]]></CSP>
+</Export>

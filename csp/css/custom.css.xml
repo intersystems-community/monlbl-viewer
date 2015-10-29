@@ -1,0 +1,592 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="css/custom.css" application="/csp/gmonlbl/"><![CDATA[
+
+/*===============================
+           GENERAL STYLES
+================================*/
+html {
+    height: 100%;
+    min-width: 100%;
+    font-size: 18px;
+    box-sizing: border-box;
+    font-family: "Roboto","Helvetica","Arial",sans-serif !important;
+}
+
+*,
+*:before,
+*:after { 
+    box-sizing: inherit; 
+}
+
+body {
+    min-width: 100%;
+    background: #FAFAFA;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+html,
+body {
+    font-family: "Roboto","Helvetica","Arial",sans-serif;
+    padding: 0;
+    margin: 0;  
+}
+
+[ng\:cloak], [ng-cloak], .ng-cloak {
+    display: none !important;
+}
+
+.pull-left {
+    float: left !important;
+}
+.pull-right {
+    float: right !important;
+}
+
+.indent-top-60 {
+    margin-top: 60px;
+}
+
+/*===============================
+          TABLES STYLES
+================================*/
+.table-counter {
+    counter-reset: rowNumber;
+}
+
+.table-counter tbody tr {
+    counter-increment: rowNumber;
+}
+
+.table-counter td:first-child::before {
+    content: counter(rowNumber);
+    min-width: 1em;
+    margin-right: 0.5em;
+}
+
+.st-sort-ascent::before, .st-sort-descent::before {
+    position: absolute;
+    left: 0;
+    display: inline-block;
+    font-family: 'Material-Design-Iconic-Font';
+    font-weight: bold;
+    font-style: normal;
+    font-size: 1em;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    word-wrap: normal;
+}
+
+table thead th[st-sort] {
+    cursor: pointer;
+}
+
+table thead th.st-sort-ascent, table thead th.st-sort-descent {
+    position: relative;
+    padding-left: 10px;
+    padding-right: 0;
+}
+
+table .st-sort-ascent::before {
+    content: '\f2f8';
+}
+
+table .st-sort-descent::before {
+    content: '\f2f2';
+}
+
+/*===============================
+          NAVBAR SECTION
+================================*/
+
+#navbar {
+    max-height: 100%;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,.26);
+    color: #cdc7fc;
+    font-size: 1em;
+}
+
+.nav-wrapper:after {
+    display: table;
+    content: "";
+    clear: both;
+}
+
+.nav-buttons {
+    margin-left: 30px;
+}
+
+.nav-wrapper {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.status {
+    display: inline-block;
+}
+
+@media only screen and (max-width: 992px) {
+    nav .brand-logo {
+        position: static !important;
+        transform: none;
+        padding-left: 40px !important;
+        left: auto;
+    }
+}
+
+/*===============================
+           JUMBO SECTION
+================================*/
+
+main {
+    display: flex;
+    width: 100%;
+    color: #3F51B5;
+    font-family: "Roboto","Helvetica","Arial",sans-serif;
+}
+
+main > .ng-scope {
+    width: 100%;
+    align-items: stretch;
+}
+
+.jumbo {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    color: #3F51B5;
+    font-family: "Roboto","Helvetica","Arial",sans-serif;
+}
+
+.jumbo .title {
+    position: relative;
+    display: block;
+    width: 100%;
+    background-color: transparent;
+}
+
+.jumbo #version {
+    opacity: 0;
+    font-weight: bold;
+    color: #FF4081;
+}
+
+.jumbo h1, .jumbo p {
+    margin-left: 5%;
+}
+
+.jumbo h1 {
+    font-size: 4.8em;
+    font-weight: 500;
+}
+
+.jumbo p {
+    margin-top: 0.1em;
+    padding-left:5px;
+    font-size: 1.2em;
+}
+
+@media screen and (max-width: 960px) {
+        .jumbo h1 {
+            font-size: 2.3em;
+            line-height: 2.3em;
+        }
+
+        .jumbo p {
+            font-size: 0.7em;
+        }
+}
+
+/*===============================
+           START CARD
+================================*/
+
+.start-card {
+    position: absolute;
+    left:0;
+    right:0;
+    display: none;
+    width: 60%;
+    max-width: 1200px;
+    margin: 4em auto 0;
+}
+
+.start-card .routine-mask {
+    width: 80%;
+    margin-right: 16px;
+}
+
+.start-card .add-mask-container {
+    display: inline-block;
+    line-height: 2.5em;
+    margin-top: 1em;
+    vertical-align: bottom;
+}
+
+.start-card .input-field {
+    width: calc(100% - 140px) !important;
+}
+
+.start-card .input-field input{
+    height: 2.5em;
+}
+
+.start-card .card-content {
+    padding: 24px;
+    padding-top: 0;
+}
+
+.start-card .card-no-routines,
+.start-card .routine-list,
+.start-card .routines-loading
+ {
+    height: 380px;
+ }
+
+.start-card .routines-loading {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.start-card .card-no-routines {
+    color: #7986CB;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.start-card .card-no-routines span {
+    display: inline-block;
+    font-weight: 500;
+    font-size: 2em;
+    margin-top: 167.5px;
+}
+
+.start-card .card-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 16px;
+}
+
+.start-card button {
+    margin: 0;
+    margin-left: 6px;
+}
+
+.start-card .routines-count {
+    display: block;
+    color: #FF4081;
+    font-size: 0.7em;
+    font-weight: 500;
+    padding: 0 0.75em;;
+}
+
+.start-card .card-header {
+    padding: 24px;
+}
+
+.routine-mask-section > .row {
+    margin-bottom: 0;
+}
+
+.start-card .routine-list {
+    max-height: 380px;
+    white-space: nowrap;
+    max-width: auto;
+    overflow: auto;
+}
+
+.start-card .routine-list button {
+    margin-left: 0;
+}
+
+.start-card .rtn-name {
+    margin-bottom: 6px;
+    font-size: 0.7em;
+}
+
+.start-card .delete-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    color: red;
+}
+
+.start-card .card-action {
+    border-top: none;
+}
+
+@media screen and (max-width: 1300px) {
+     .start-card {
+         width: 90%;
+     }
+}
+
+@media screen and (max-width: 900px) {
+    .start-card .card-no-routines span {
+        font-size: 1.3em;
+    }
+}
+
+@media screen and (max-width: 600px) {
+     .start-card .add-mask-container {
+            display: block;
+            margin-top: 6px;
+            margin-left: 0;
+        }
+
+        .start-card .add-mask-btn {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        .start-card .routines-count {
+            margin-top: 10px;
+        }
+
+        .start-card .mdl-textfield {
+            width: 100%  !important; 
+        }
+
+        .start-card .routine-list {
+            height: auto;
+            max-height: 100%;
+            white-space: nowrap;
+        }
+}
+
+/*===============================
+              FOOTER
+================================*/
+
+#footer {
+    width: 100%;
+    height: 45px;
+    padding-top: 13px;
+    background: #EEEEEE;
+    color: #3F51B5;
+    font-family: "Roboto","Helvetica","Arial",sans-serif;
+    font-weight: 500;
+    font-size: 0.7em;
+}
+
+/*===============================
+              NAV
+================================*/
+
+nav {
+    z-index: 100;
+    background-color: rgb(63, 81, 181);
+    color: #cdc7fc;
+}
+
+nav .brand-logo {
+    position: static;
+    display: inline-block;
+    padding-left: 80px;
+    color: inherit;
+    font-family: "Roboto","Helvetica","Arial",sans-serif;
+    font-size: 20px;
+    line-height: 64px;
+    letter-spacing: .02em;
+    font-weight: 400;
+}
+
+#status {
+    margin-right: 40px;
+    font-size: 24px;
+    font-weight: normal;
+    line-height: 64px;
+}
+
+.control-buttons {
+    display: inline-block;
+    margin-left: 27px;
+}
+
+.control-buttons .btn {
+    margin-left: 4px;
+}
+
+/*===============================
+             SUMMARY
+================================*/
+
+#table-container {
+    position: relative;
+}
+
+#table-refresh {
+    position: absolute;
+    right: -50px;
+    top: 15px;
+}
+
+#table-summary td, #table-summary th {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#table-summary td {
+    cursor: pointer;
+}
+
+th[st-sort]:hover {
+    color: rgb(255,64,129);
+}
+
+#table-summary .st-sort-ascent::before {
+    top: 30%;
+}
+
+#table-summary .st-sort-descent::before {
+    top: 35%;
+}
+
+@media only screen and (max-width: 992px) {
+    #table-refresh {
+        position: absolute;
+        right: 0;
+        top: -40px;
+    }
+}
+
+
+/*===============================
+             ROUTINE
+================================*/
+
+#routine-table tbody td {
+    padding: 0 5px 0;
+    font-size: 12px;
+    line-height: 14px;
+    border: 1px solid #ccc;
+}
+
+#routine-table th {
+    padding: 0;
+    font-size: 14px;
+    line-height: 16px;
+    text-align: center;
+}
+
+#routine-table .st-sort-ascent::before,
+#routine-table .st-sort-descent::before {
+    position: absolute;
+    font-size: 14px;
+    line-height: 16px;
+}
+
+#routine-table pre {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+#routine-container {
+    max-width: 85%;
+}
+
+/*===============================
+            SUB STYLES
+================================*/
+
+.btn {
+    min-width: 88px;
+    width: auto !important;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: rgba(0, 0, 0, 0.137255) 0px 2px 2px 0px, rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.117647) 0px 1px 5px 0px;
+}
+
+.btn-flat {
+    min-width: 88px;
+    width: auto !important;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.btn.disabled, 
+.disabled.btn-large, 
+.btn-floating.disabled, 
+.btn-large.disabled, 
+.btn:disabled, 
+.btn-large:disabled, 
+.btn-large:disabled, 
+.btn-floating:disabled {
+    background-color: rgba(0, 0, 0, 0.117647) !important;
+    color: rgba(0, 0, 0, 0.258824) !important;
+    box-shadow: rgba(0, 0, 0, 0.137255) 0px 2px 2px 0px, rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.117647) 0px 1px 5px 0px;
+}
+
+.waves-accent {
+    background-color: rgb(255,64,129) !important; 
+}
+
+.accent {
+    background-color: rgb(255,64,129) !important; 
+}
+
+btn.primary {
+    background-color: rgb(63,81,181) !important;
+}
+
+input[type=text]:focus:not([readonly]).primary, 
+input[type=password]:focus:not([readonly]).primary, 
+input[type=email]:focus:not([readonly]).primary, 
+input[type=url]:focus:not([readonly]).primary, 
+input[type=time]:focus:not([readonly]).primary, 
+input[type=date]:focus:not([readonly]).primary, 
+input[type=datetime-local]:focus:not([readonly]).primary, 
+input[type=tel]:focus:not([readonly]).primary, 
+input[type=number]:focus:not([readonly]).primary, 
+input[type=search]:focus:not([readonly]).primary, 
+textarea.materialize-textarea:focus:not([readonly]).primary {
+    border-bottom: 1px solid rgb(63,81,181);
+    box-shadow: 0 1px 0 0 rgb(63,81,181);
+}
+
+input[type=text]:focus:not([readonly]) + label, 
+input[type=password]:focus:not([readonly]) + label, 
+input[type=email]:focus:not([readonly]) + label, 
+input[type=url]:focus:not([readonly]) + label, 
+input[type=time]:focus:not([readonly]) + label, 
+input[type=date]:focus:not([readonly]) + label, 
+input[type=datetime-local]:focus:not([readonly]) + label, 
+input[type=tel]:focus:not([readonly]) + label, 
+input[type=number]:focus:not([readonly]) + label, 
+input[type=search]:focus:not([readonly]) + label, 
+textarea.materialize-textarea:focus:not([readonly]) + label {
+    color: rgb(63,81,181);
+}
+
+button:focus {
+    background-color: transparent;
+}
+
+.loader {
+    display: block;
+}]]></CSP>
+</Export>

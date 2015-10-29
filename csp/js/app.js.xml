@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="js/app.js" application="/csp/gmonlbl/"><![CDATA[
+'use strict';
+
+var servicesModule = angular.module('servicesModule', []);
+var controllersModule = angular.module('controllersModule', []);
+var app = angular.module('app', ['ngRoute', 'ui.bootstrap', 'servicesModule', 'controllersModule', 'smart-table']);
+
+app.config(['$routeProvider', function ($routeProvider) {
+    $routeProvider.when('/summary', {templateUrl: 'partials/summary.csp'});
+    $routeProvider.when('/main', {templateUrl: 'partials/main.csp'});
+    $routeProvider.when('/routine/:name', {templateUrl: 'partials/routine.csp'});
+
+    $routeProvider.otherwise({redirectTo: '/main'});
+}]);
+
+angular.module('app')
+    .filter('to_trusted', ['$sce', function ($sce) {
+        return function (text) {
+            return $sce.trustAsHtml(text);
+        };
+    }]);
+]]></CSP>
+</Export>

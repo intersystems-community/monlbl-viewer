@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="partials/summary.csp" application="/csp/gmonlbl/"><![CDATA[
+<!-- Summary table section start -->
+<div ng-controller="SummaryCtrl">
+    <div class="container indent-top-60">
+        <div id="table-container" class="row">
+            <a id="table-refresh" class="btn-floating waves-effect waves-light accent" ng-click="app.getSummary()"><i class="zmdi zmdi-refresh-alt"></i></a>
+            <table id="table-summary" st-table="app.displayedCollection" st-safe-src="app.rowCollection" class="bordered table highlight table-counter">
+
+                <thead>
+                    <tr>
+                        <th style="text-align: center;">#</th>
+                        <th st-sort="Routine">Routine</th>
+                        <th st-sort="LinesCode">Lines</th>
+                        <th st-sort="LinesHit">Lines Hit</th>
+                        <th st-sort="Time">Time</th>
+                    </tr>
+                </thead>
+
+                <tbody ng-show="!app.isLoading">
+                    <tr ng-repeat="routine in app.displayedCollection" ng-click="app.goRoute('/routine/' + routine.Routine)">
+                        <td style="text-align: center;"></td>
+                        <td>{{routine.Routine}}</td>
+                        <td>{{routine.LinesCode}}</td>
+                        <td>{{routine.LinesHit}}</td>
+                        <td>{{routine.Time}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+<!-- Summary table section end -->]]></CSP>
+</Export>

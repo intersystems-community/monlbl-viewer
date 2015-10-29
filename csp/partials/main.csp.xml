@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<CSP name="partials/main.csp" application="/csp/gmonlbl/"><![CDATA[
+<div class="jumbo">
+	<div class="title">	 
+    <h1 class="">MONLBL <span style="white-space: nowrap;">Viewer<span id="version"> 2</span></span></h1>
+    <p>A web tool to explore statistics of Caché Monitor</p>
+  </div>
+</div>
+
+<div id="startCard" class="start-card">
+  
+  <div class="row">
+    <div class="col s12">
+      <div class="card">
+      	
+      	<div class="card-header">
+        	<div class="routine-mask-section">
+        		<div class="row">
+			        <div class="input-field col s12">
+			          <input id="rtn-mask" ng-model="app.currentMask" ng-keyUp="app.onMaskKeyUp($event);" class="primary" type="text">
+			          <label for="rtn-mask" style="font-weight: 500;">Routine names mask</label>
+			        </div>
+			        <div class="add-mask-container col">
+				        <button class="waves-effect waves-light btn accent add-mask-btn" ng-click="app.onAddRoutine();">Add to list</button>
+				      </div>
+						</div>
+    			</div>
+    			
+    			<span class="routines-count" ng-bind-template="Routines selected: {{app.selectedRoutines.length}}"></span>	
+    		</div>
+    		
+    		
+        <div class="card-content">
+       
+          <!-- Content if NO routines -->
+	        <div class="card-no-routines" ng-show="!app.selectedRoutines.length && !app.routineListLoading" ng-cloak>
+	        	<span>No routines selected</span>
+	        </div>
+	        
+	        <!-- Content loading -->
+	        <div class="routines-loading" ng-show="app.routineListLoading">
+	        	<div class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+	        </div>
+	        
+	        <!-- Content for routines -->
+	        <div class="row">
+		        <div class="routine-list col s12" ng-show="app.selectedRoutines.length && !app.routineListLoading" ng-cloak>
+		        	<div class="rtn-name" ng-repeat="rtn in app.selectedRoutines">
+		        		<button class="waves-effect btn-flat delete-btn" aria-label="Remove from list" ng-click="app.deleteRoutineFromList($index)">
+            			<i class="zmdi zmdi-close zmdi-hc-lg"></i>
+				        </button>
+		        		<span>{{rtn}}</span>
+		        	</div>
+		        </div>
+	        </div>
+        </div>
+        
+        <div class="card-action right">
+	        <button id="start-card-cancel" class="waves-effect btn-flat" style="min-width: 88px;" ng-click="app.onCancel()">Cancel</button>
+	        <button id="start-card-start" class="waves-effect waves-light btn accent" ng-disabled="app.selectedRoutines.length == 0" ng-click="app.onStartMonitor()">Start</button>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>]]></CSP>
+</Export>
