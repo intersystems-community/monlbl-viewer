@@ -30,27 +30,30 @@ function MainCtrl($scope, $location, MainSrvc) {
 
     /* This method retrieves MONLBL status from server */
     _s.getStatus = function () {
-        MainSrvc.getStatus().then(function (data) {
-            _s.statusCode = +data.status;
+        return MainSrvc.getStatus()
+            .then(function (data) {
+                _s.statusCode = +data.status;
 
-            switch (+data.status) {
-            case 0:
-                _s.status = 'Stopped';
-                _s.statusCode = 0;
-                break;
-            case 1:
-                _s.status = 'Started';
-                _s.statusCode = 1;
-                break;
-            case 2:
-                _s.status = 'Paused';
-                _s.statusCode = 2;
-                break;
-            default:
-                _s.status = 'Error';
-                break;
-            }
-        })
+                switch (+data.status) {
+                case 0:
+                    _s.status = 'Stopped';
+                    _s.statusCode = 0;
+                    break;
+                case 1:
+                    _s.status = 'Started';
+                    _s.statusCode = 1;
+                    break;
+                case 2:
+                    _s.status = 'Paused';
+                    _s.statusCode = 2;
+                    break;
+                default:
+                    _s.status = 'Error';
+                    break;
+                }
+
+                return _s.statusCode;
+            })
             .catch(function () {
                 alert("Sorry. Unable to get status, try again.");
             });
@@ -105,37 +108,36 @@ function MainCtrl($scope, $location, MainSrvc) {
         routineList = _s.currentMask.split(reg);
         rtnNames = routineList.join('|');
 
-        MainSrvc.getRoutineList(rtnNames).then(function (data) {
+        MainSrvc.getRoutineList(rtnNames)
+            .then(function (data) {
+                var
+                    routines,
+                    routinesCount,
+                    i;
 
-            var
-                routines,
-                routinesCount,
-                i;
+                if (_s.isStartCard) {
+                    routines = data.routineList.split('|');
+                    routinesCount = data.status;
 
-            if (_s.isStartCard) {
-                routines = data.routineList.split('|');
-                routinesCount = data.status;
-
-                for (i = 0; i < routines.length; i += 1) {
-                    /*  Cycle through all the gotten routines
-                    //  and filter already existing */
-                    if (!_s.selectedRoutinesSet.has(routines[i]) && (routines[i] !== "")) {
-                        _s.selectedRoutinesSet.add(routines[i]);
-                        _s.selectedRoutines.push(routines[i]);
-                    } else {
-                        routinesCount -= 1;
+                    for (i = 0; i < routines.length; i += 1) {
+                        /*  Cycle through all the gotten routines
+                        //  and filter already existing */
+                        if (!_s.selectedRoutinesSet.has(routines[i]) && (routines[i] !== "")) {
+                            _s.selectedRoutinesSet.add(routines[i]);
+                            _s.selectedRoutines.push(routines[i]);
+                        } else {
+                            routinesCount -= 1;
+                        }
                     }
                 }
-            }
 
-            _s.currentMask = "";
-        })
-            .then(function () {
-                _s.routineListLoading = false;
+                _s.currentMask = "";
             })
             .catch(function () {
-                _s.routineListLoading = false;
                 alert("Sorry. Unable to get status, try again.");
+            })
+            .finally(function () {
+                _s.routineListLoading = false;
             });
     };
 
@@ -144,14 +146,13 @@ function MainCtrl($scope, $location, MainSrvc) {
     // fires when 'Add Routine' button pressed */
     _s.onStartMonitor = function () {
         var rtnNames = _s.selectedRoutines.join('|');
-        MainSrvc.startMonitor(rtnNames).then(
-            function () {
+        return MainSrvc.startMonitor(rtnNames)
+            .then(function () {
                 _s.getStatus();
                 _s.onCancel();
                 _s.isStartCard = false;
                 _s.goRoute('/summary');
-            }
-        )
+            })
             .catch(function () {
                 alert("Sorry. Unable to get status, try again.");
             });
@@ -160,23 +161,27 @@ function MainCtrl($scope, $location, MainSrvc) {
     /* EVENT HANDLER
     // fires when 'Stop' button pressed */
     _s.onStopMonitor = function () {
-        _s.getStatus();
-
-        if (_s.statusCode === 0) {
-            _s.goRoute('/main');
-            return;
-        }
-
-        MainSrvc.stopMonitor().then(function () {
-            _s.getStatus();
-            _s.goRoute('/main');
-
-            setTimeout(function () {
-                $("#version").animate({opacity: 1}, 1200);
-            }, 1200);
-        })
+        return _s.getStatus()
+            .then(function (statusCode) {
+                if (statusCode === 0) {
+                    $q.reject(new Error("Monitor is already stopped"));
+                }
+            })
+            .then(function () {
+                return MainSrvc.stopMonitor();
+            })
             .catch(function () {
-                alert("Sorry. Unable to get status, try again.");
+                console.log("Bad status retuned. Go to main page.");
+            })
+            .finally(function () {
+                _s.getStatus()
+                    .then(function () {
+                        _s.goRoute('/main');
+
+                        setTimeout(function () {
+                            $("#version").animate({opacity: 1}, 1200);
+                        }, 1200);
+                    })
             });
     };
 
@@ -184,9 +189,10 @@ function MainCtrl($scope, $location, MainSrvc) {
     /* EVENT HANDLER
     // fires when 'Resume' button pressed */
     _s.onResumeMonitor = function () {
-        MainSrvc.resumeMonitor().then(function () {
-            _s.getStatus();
-        })
+        return MainSrvc.resumeMonitor()
+            .then(function () {
+                return _s.getStatus();
+            })
             .catch(function () {
                 alert("Sorry. Unable to get status, try again.");
             });
