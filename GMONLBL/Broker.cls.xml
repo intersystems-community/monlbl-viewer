@@ -14,31 +14,49 @@ and passed as arguments to the named method.</Description>
 <XMLNamespace>http://www.intersystems.com/urlmap</XMLNamespace>
 <Data><![CDATA[
 <Routes >
-<!-- Все группы -->
-<Route Url="/status" Method="GET" Call="CheckMonitorStatus"/>
-<Route Url="/start" Method="POST" Call="StartMonitor"/>  
-<Route Url="/stop" Method="GET" Call="StopMonitor"/> 
-<Route Url="/pause" Method="GET" Call="PauseMonitor"/>
-<Route Url="/resume" Method="GET" Call="ResumeMonitor"/>
-<Route Url="/reset" Method="GET" Call="ResetStats"/>
-<Route Url="/summary" Method="GET" Call="GetSummary"/>  
-<Route Url="/routines" Method="POST" Call="GetRoutineListByMask"/>
-<Route Url="/routine" Method="POST" Call="GetRoutineData"/>
-<Route Url="/test" Method="GET" Call="Test"/> 
+    <!-- Get monitor status -->
+    <Route Url="/status" Method="GET" Call="CheckMonitorStatus"/>
 
+    <!-- Start monitor -->
+    <Route Url="/start" Method="POST" Call="StartMonitor"/>  
+
+    <!-- Stop monitor -->
+    <Route Url="/stop" Method="GET" Call="StopMonitor"/> 
+
+    <!-- Pause monitor -->
+    <Route Url="/pause" Method="GET" Call="PauseMonitor"/>
+
+    <!-- Resume monitor-->
+    <Route Url="/resume" Method="GET" Call="ResumeMonitor"/>
+
+    <!-- Reset monitor's statistics -->
+    <Route Url="/reset" Method="GET" Call="ResetStats"/>
+
+    <!-- Get routines summary -->
+    <Route Url="/summary" Method="GET" Call="GetSummary"/>  
+
+    <!-- Pass list of routines -->
+    <Route Url="/routines" Method="POST" Call="GetRoutineListByMask"/>
+
+    <!-- Get routine statistisc -->
+    <Route Url="/routine" Method="POST" Call="GetRoutineData"/>
+
+    <!-- Test method -->
+    <Route Url="/test" Method="GET" Call="Test"/>
 </Routes>
 ]]></Data>
 </XData>
 
 <Method name="Http404">
 <Description>
-Issue an '404' error ( user can override)</Description>
+Issue an '404' error (user can override)</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	&html<<h3 style="color:red">Страница не найдена!</h3>>
-    Set %response.Status="404 Not Found"
-    Quit $$$OK
+    &html<<h3 style="color:red">Page not found!</h3>>
+  
+    set %response.Status="404 Not Found"
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -47,13 +65,10 @@ Issue an '404' error ( user can override)</Description>
 <PublicList>ok</PublicList>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
- x "set ok = 1"
-    
-	if ( ok ) { 
-	  w "OK"
-	}
-	
-  q $$$OK
+    xecute "set ok = 1"
+    write:(ok) "OK"
+
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -63,22 +78,55 @@ Return monitor status</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-  // if $zu(84,8) = 0 then Monitor stopped
-  if ( $zu( 84, 8 ) = 0 ) {
-    w "{ ""status"" : ""0"" }"
-    q $$$OK
-  }
-
-  // if $zu(84,8) = 1 then Monitor started
-  if ( $zu( 84, 8 ) = 1 ) {
-    // if $zu(84,1) = 0 then Monitor started, but paused
-    if ( $zu( 84, 1 ) = 0 ) {
-      w "{ ""status"" : ""2"" }"
-      q $$$OK
+    if (..isMonitorStopped()) 
+    {
+        write "{ ""status"" : ""0"" }"
+        return $$$OK
     }
-    w "{ ""status"" : ""1"" }"
-    q $$$OK
-  }
+
+  
+    if (..isMonitorStarted()) 
+    {
+
+        if (..isMonitorPaused()) 
+        {
+            write "{ ""status"" : ""2"" }"
+            return $$$OK
+        }
+
+        write "{ ""status"" : ""1"" }"
+        return $$$OK
+    }
+]]></Implementation>
+</Method>
+
+<Method name="isMonitorStopped">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    /* if $zu(84,8) = 0 then Monitor stopped */
+    if ($zu(84, 8) = 0) return 1
+    return 0
+]]></Implementation>
+</Method>
+
+<Method name="isMonitorPaused">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    /* if $zu(84,1) = 0 then Monitor started, but paused */
+    if ($zu(84, 1) = 0) return 1
+    return 0
+]]></Implementation>
+</Method>
+
+<Method name="isMonitorStarted">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[
+    /* if $zu(84,8) = 1 then Monitor started */
+    if ($zu(84, 8) = 1) return 1
+    return 0
 ]]></Implementation>
 </Method>
 
@@ -89,86 +137,84 @@ Start Caché Monitor</Description>
 <PublicList>ok</PublicList>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set routineList = ""
-	set rtn = ""
-	//set ok = ""
-	set content = ..ConvertRequestBody(%request.Content)
-	
-	if ($isobject(content)) {
-		set routineList = content.routineList
-	}
-	
-	
-  lock +^|"%SYS"|SYS("MON-HOLD"):3
+    set routineList = ""
+    set rtn = ""
+    set nlist = 0
+    set content = ..ConvertRequestBody(%request.Content)
 
-  // deselect all, prepare to incoming routine list
-  do $zu(84, 12, 0)
+    set:$isobject(content) routineList = content.routineList
+        
+    lock +^|"%SYS"|SYS("MON-HOLD"):3
 
-  set j = 1
-  set nlist = 0
-  set rtnName = $piece(routineList, "|", j)
-      
-  while (rtnName '= "") {
-    set rtnName = rtnName_".obj"
+    /* deselect all, prepare to incoming routine list */
+    do $zu(84, 12, 0)
 
-    do {
-      set data = ""
-      set more = $$LIST^%R(rtnName, 32767, 0, .data, .ctx)
-
-      for i = 1 : 1 : $listlength(data) {
-        set rtn = $list(data, i)
-        set rtn = $piece(rtn, ".", 1, $length(rtn, ".") - 1)
-
-        if ($znspace = "%SYS" && rtn = "START") {
-          continue
-        }
-
-        x "zl "_rtn_" set ok = $zu(84, 12, 1)"
-
-        if (ok) { 
-          set nlist = nlist + 1
-        }
-      }
-    } while more
-
-    set j = j + 1
+    set j = 1
     set rtnName = $piece(routineList, "|", j)
-  }
+      
+    while (rtnName '= "") 
+    {
+        set rtnName = rtnName_".obj"
 
-  if (nlist = 0) {
-	  lock -^|"%SYS"|SYS("MON-HOLD")
-	  w "{ ""status"" : ""0"" }"
-    q $$$OK
-  }
+        do {
+            set data = ""
+            set more = $$LIST^%R(rtnName, 32767, 0, .data, .ctx)
 
-  // select all
-  do $zu(84, 13, 2)
+            for i = 1 : 1 : $listlength(data) 
+            {
+                set rtn = $list(data, i)
+                set rtn = $piece(rtn, ".", 1, $length(rtn, ".") - 1)
 
-  // allocate memory and initialize data structures
-  // (switch on monitoring)
-  if ($zu(84, 0, 1, 1, 1, 1, 1, 1 ) '= 1) {
-	  lock -^|"%SYS"|SYS("MON-HOLD")
-	  w "{ ""status"" : ""-1"" }"
-    q $$$OK
-  }
+                continue:($znspace = "%SYS" && rtn = "START") 
+
+                xecute "zl "_rtn_" set ok = $zu(84, 12, 1)"
+                set:ok nlist = nlist + 1
+            }
+
+        } while more
+
+        set j = j + 1
+        set rtnName = $piece(routineList, "|", j)
+    }
+
+    if (nlist = 0) 
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""0"" }"
+        return $$$OK
+    }
+
+    /* select all */
+    do $zu(84, 13, 2)
+
+    /* allocate memory and initialize data structures
+    // (switch on monitoring) */
+    if ($zu(84, 0, 1, 1, 1, 1, 1, 1) '= 1) 
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""-1"" }"
+        return $$$OK
+    }
  
-  // enable stats for all jobs
-  if ($zu( 84, 1, 1 ) '= 1) {
-	  lock -^|"%SYS"|SYS("MON-HOLD")
-	  w "{ ""status"" : ""-2"" }"
-    q $$$OK
-  }
+    /* enable stats for all jobs */
+    if ($zu(84, 1, 1) '= 1) 
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""-2"" }"
+        return $$$OK
+    }
 
-  // enable line-by-line monitoring
-  do $zu(84, 15)
+    /* enable line-by-line monitoring */
+    do $zu(84, 15)
 
-  set ^|"%SYS"|SYS("MONITOR","START") = $h
-  kill ^|"%SYS"|SYS("MONITOR","PAUSE"),^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
+    set ^|"%SYS"|SYS("MONITOR","START") = $horolog
+    kill ^|"%SYS"|SYS("MONITOR","PAUSE")
+    kill ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
 
-  lock -^|"%SYS"|SYS("MON-HOLD")
-	
-	w "{ ""status"" : """_nlist_""" }"
-  q $$$OK
+    lock -^|"%SYS"|SYS("MON-HOLD")
+    
+    write "{ ""status"" : """_nlist_""" }"
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -178,21 +224,22 @@ Stop Caché Monitor</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-  lock +^|"%SYS"|SYS("MON-HOLD"):3
+    lock +^|"%SYS"|SYS("MON-HOLD"):3
 
-  // disable stats
-  set status = $zu(84, 1, 0)
+    /* disable stats */
+    set status = $zu(84, 1, 0)
 
-  // end collection
-  set status = $zu(84, 0, 0)
+    /* end collection */
+    set status = $zu(84, 0, 0)
 
-  kill ^|"%SYS"|SYS("MONITOR","START")
-  kill ^|"%SYS"|SYS("MONITOR","PAUSE"),^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
+    kill ^|"%SYS"|SYS("MONITOR","START")
+    kill ^|"%SYS"|SYS("MONITOR","PAUSE")
+    kill ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
 
-  lock -^|"%SYS"|SYS("MON-HOLD")
-	
-  w "{ ""status"" : """_status_""" }"
-  q $$$OK
+    lock -^|"%SYS"|SYS("MON-HOLD")
+    
+    write "{ ""status"" : """_status_""" }"
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -200,38 +247,45 @@ Stop Caché Monitor</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	lock +^|"%SYS"|SYS("MON-HOLD"):3
+    lock +^|"%SYS"|SYS("MON-HOLD"):3
   
-  // Somebody already uses monitor 
-  else  lock -^|"%SYS"|SYS("MON-HOLD") return -1
+    /* somebody already uses monitor */ 
+    if ('$TEST) 
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD") 
+        write "{ ""status"" : ""-1"" }"
+        return $$$OK
+    }
 
-  // Monitor is not running
-  if ( $zu( 84, 8 ) = 0 ) {
+    /* Monitor is not running */
+    if (..isMonitorStopped())
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""-2"" }"
+        return $$$OK
+    }
+
+    /* Monitor already running */
+    if ($zu(84, 1) = 1)
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""-3"" }"
+        return $$$OK
+    }
+
+    do $zu(84, 1, 1)
+    set h1 = $horolog
+
+    if $d(^|"%SYS"|SYS("MONITOR","PAUSE")) 
+    {
+        set x=((h1-^|"%SYS"|SYS("MONITOR","PAUSE"))*86400)+($p(h1,",",2)-$p(^|"%SYS"|SYS("MONITOR","PAUSE"),",",2))
+        set ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")=x+$g(^|"%SYS"|SYS("MONITOR","PAUSE-TIME"))
+        kill ^|"%SYS"|SYS("MONITOR","PAUSE")
+    }
+
     lock -^|"%SYS"|SYS("MON-HOLD")
-    w "{ ""status"" : ""-2"" }"
-    q $$$OK
-  }
-
-  // Monitor already running
-  if ( $zu( 84, 1 ) = 1 ) {
-    lock -^|"%SYS"|SYS("MON-HOLD")
-    w "{ ""status"" : ""-3"" }"
-    q $$$OK
-  }
-
-  set zu84 = $zu( 84, 1, 1 )
-  set h1 = $h
-
-  if $d(^|"%SYS"|SYS("MONITOR","PAUSE")) {
-
-    set x=((h1-^|"%SYS"|SYS("MONITOR","PAUSE"))*86400)+($p(h1,",",2)-$p(^|"%SYS"|SYS("MONITOR","PAUSE"),",",2))
-    set ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")=x+$g(^|"%SYS"|SYS("MONITOR","PAUSE-TIME"))
-    kill ^|"%SYS"|SYS("MONITOR","PAUSE")
-  }
-
-  lock -^|"%SYS"|SYS("MON-HOLD")
-  w "{ ""status"" : ""1"" }"
-  q $$$OK
+    write "{ ""status"" : ""1"" }"
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -239,37 +293,40 @@ Stop Caché Monitor</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	lock +^|"%SYS"|SYS("MON-HOLD"):3
+    lock +^|"%SYS"|SYS("MON-HOLD"):3
 
-  // somebody already uses monitor 
-  if ('$TEST) {
-  	lock -^|"%SYS"|SYS("MON-HOLD") 
-    w "{ ""status"" : ""-1"" }"
-  	q $$$OK
-  }
+    /* somebody already uses monitor */ 
+    if ('$TEST) 
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD") 
+        write "{ ""status"" : ""-1"" }"
+        return $$$OK
+    }
 
-  // monitor is not running
-  if ( $zu( 84, 8 ) = 0 ) {
+    /* monitor is not running */
+    if ($zu(84, 8) = 0)
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""-2"" }"
+        return $$$OK
+    }
+
+    /* monitor already paused */
+    if ($zu(84, 1) = 0)
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""-3"" }"
+        return $$$OK
+    }
+
+    /* disable stats */
+    do $zu(84, 1, 0)
+
+    set ^|"%SYS"|SYS("MONITOR","PAUSE") = $horolog 
     lock -^|"%SYS"|SYS("MON-HOLD")
-    w "{ ""status"" : ""-2"" }"
-  	q $$$OK
-  }
 
-  // monitor already paused
-  if ( $zu( 84, 1 ) = 0) {
-    lock -^|"%SYS"|SYS("MON-HOLD")
-    w "{ ""status"" : ""-3"" }"
-  	q $$$OK
-  }
-
-  // disable stats
-  set zu84 = $zu( 84, 1, 0 )
-
-  set ^|"%SYS"|SYS("MONITOR","PAUSE") = $h 
-  lock -^|"%SYS"|SYS("MON-HOLD")
-
-  w "{ ""status"" : ""1"" }"
-  q $$$OK
+    write "{ ""status"" : ""1"" }"
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -277,15 +334,15 @@ Stop Caché Monitor</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	lock +^|"%SYS"|SYS("MON-HOLD"):3
-	
-  // clear stats
-  set zu84 = $zu( 84, 2 )
+    lock +^|"%SYS"|SYS("MON-HOLD"):3
+    
+    /* clear stats */
+    do $zu(84, 2)
 
-  lock -^|"%SYS"|SYS("MON-HOLD")
+    lock -^|"%SYS"|SYS("MON-HOLD")
 
-  w "{ ""status"" : ""1"" }"
-  q $$$OK
+    write "{ ""status"" : ""1"" }"
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -295,60 +352,59 @@ Get routine list by mask</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	set routineList = ""
-	set rtn = ""
-	set content = ..ConvertRequestBody(%request.Content)
-	
-	if ($isobject(content)) {
-		set routineList = content.routineList
-	}
-	
-  lock +^|"%SYS"|SYS("MON-HOLD"):3
+    set routineList = ""
+    set rtn = ""
+    set nlist = 0
+    set content = ..ConvertRequestBody(%request.Content)
 
-  // deselect all, prepare to incoming routine list
-  do $zu(84, 12, 0)
+    set:$isobject(content) routineList = content.routineList
 
-  set j = 1
-  set nlist = 0
-  set rtnName = $piece(routineList, "|", j)
-  set routinesByMask = ""
-      
-  while (rtnName '= "") {
-    set rtnName = rtnName_".obj"
+    lock +^|"%SYS"|SYS("MON-HOLD"):3
 
-    do {
-      set data = ""
-      set more = $$LIST^%R(rtnName, 32767, 0, .data, .ctx)
-			
-      for i = 1 : 1 : $listlength(data) {
-        set rtn = $list(data, i)
-        set rtn = $piece(rtn, ".", 1, $length(rtn, ".") - 1)
-				
-        if ($znspace = "%SYS" && rtn = "START") {
-          continue
-        }
-        
-        set nlist = nlist + 1
-        set routinesByMask = routinesByMask_$lb(rtn)
-      }
-    } while more
-		
-    set j = j + 1
+    /* deselect all, prepare to incoming routine list */
+    do $zu(84, 12, 0)
+
+    set j = 1
     set rtnName = $piece(routineList, "|", j)
-  }
-	
-	set routinesByMask = $listtostring(routinesByMask, "|")
-	
-  if (nlist = 0) {
-	  lock -^|"%SYS"|SYS("MON-HOLD")
-	  w "{ ""status"" : ""0"", ""routineList"" : """" }"
-    q $$$OK
-  }
-  else {
-	  lock -^|"%SYS"|SYS("MON-HOLD")
-	  w "{ ""status"" : """_nlist_""", ""routineList"" : """_routinesByMask_""" }"
-	  q $$$OK
-  }
+    set routinesByMask = ""
+      
+    while (rtnName '= "") 
+    {
+        set rtnName = rtnName_".obj"
+
+        do {
+            set data = ""
+            set more = $$LIST^%R(rtnName, 32767, 0, .data, .ctx)
+
+            for i = 1 : 1 : $listlength(data) 
+            {
+                set rtn = $list(data, i)
+                set rtn = $piece(rtn, ".", 1, $length(rtn, ".") - 1)
+
+                continue:($znspace = "%SYS" && rtn = "START")
+
+                set nlist = nlist + 1
+                set routinesByMask = routinesByMask_$lb(rtn)
+            }
+        } while more
+
+        set j = j + 1
+        set rtnName = $piece(routineList, "|", j)
+    }
+
+    set routinesByMask = $listtostring(routinesByMask, "|")
+
+    if (nlist = 0) 
+    {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : ""0"", ""routineList"" : """" }"
+        
+    } else {
+        lock -^|"%SYS"|SYS("MON-HOLD")
+        write "{ ""status"" : """_nlist_""", ""routineList"" : """_routinesByMask_""" }"
+    }
+    
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -356,156 +412,150 @@ Get routine list by mask</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-		set index = $increment( ^CacheTemp )
-	  $$$AddTempNode( ^CacheTemp( index ) )
-	  
-	  set sortIndex = -1
-	  set rtnLine = -1
-	  
-	  for metric = 0 : 1 : ( $zutil( 84, 13 ) - 1 ) {
-	    set n = $zutil( 84, 13, 11, metric )
-	    
-	    if ( n = 50 ) {
-	      set sortIndex = metric
-	    }
-	    
-	    if ( n = 33 ) {
-	      set rtnLine = metric
-	    }
-	    
-	  }
+    set index = $increment(^CacheTemp)
+    $$$AddTempNode(^CacheTemp(index))
 
-	  // $zu(84,16) returns number of routines being monitored
-	  for rtnNum = 1 : 1 : ( $zu( 84, 16 ) ) {
-	    // don't report on routines with no lines executed
-	    if $zu( 84, 16, 1, rtnNum ) = 0 {
-	      continue
-	    }
+    set sortIndex = -1
+    set rtnLine = -1
 
-	    kill metric
-	    set hits = 0
-	    // zero coverage stats
-	    if $zutil( 84, 16, 1, rtnNum ) = 0 {
-	      // get number of lines in routine
-	      set line = $$LENGTH^%R( $zu( 84, 16, 2, rtnNum ) )
+    for metric = 0 : 1 : ($zutil(84, 13) - 1) 
+    {
+        set n = $zutil(84, 13, 11, metric)
+        set:(n = 50) sortIndex = metric
+        set:(n = 33) rtnLine = metric
+    }
 
-	      if ( line = 0 ) { 
-	        set metric( -1 ) = -1
-	        set metric( -2 ) = 0
-	        set metric( -3 ) = "NA"
-	      }
-	      else {
-	        set metric( -1 ) = 0
-	        set metric( -2 ) = 0
-	        set metric( -3 ) = line
-	      }
-	    }
+    /* $zu(84,16) returns number of routines being monitored */
+    for rtnNum = 1 : 1 : ($zu(84, 16)) 
+    {
+        /* don't report on routines with no lines executed */
+        continue:($zu(84, 16, 1, rtnNum) = 0)
 
-	    // for each routine line
-	    for line = 0 : 1 : ( $zu( 84, 16, 1, rtnNum ) - 1 ) {
-	    // for each metric
-	      for i = 0 : 1 : ( $zu( 84, 13 ) - 1 ) {
-	        set metric( i ) = $get( metric( i ) ) + $zu( 84, 16, 3, line, i )
-	      }
+        kill metric
+        set hits = 0
 
-	      if $zu( 84, 16, 3, line, rtnLine ) {
-	        set hits = hits + 1
-	      }
-	    }
+        /* zero coverage stats */
+        if ($zutil(84, 16, 1, rtnNum) = 0) 
+        {
+            /* get number of lines in routine */
+            set line = $$LENGTH^%R($zu(84, 16, 2, rtnNum))
 
-	    set line = $zu( 84, 16, 7, rtnNum )
-	    set metric( -3 ) = line
-	    set metric( -2 ) = hits
-	    set metric( -1 ) = +$fnumber( hits / line * 100, "", 2)
+            if (line = 0) 
+            { 
+                set metric(-1) = -1
+                set metric(-2) = 0
+                set metric(-3) = "NA"
+            } else {
+                set metric(-1) = 0
+                set metric(-2) = 0
+                set metric(-3) = line
+            }
+        }
 
-	    // $zu(84,16,2,rtn_n) returns routine name by number
-	    set rtn = $zu( 84, 16, 2, rtnNum )
+        /* for each routine line */
+        for line = 0 : 1 : ($zu(84, 16, 1, rtnNum) - 1)
+        {
+            /* for each metric */
+            for i = 0 : 1 : ($zu(84, 13) - 1)
+            {
+                set metric(i) = $get(metric(i)) + $zu(84, 16, 3, line, i)
+            }
 
-	    if ( sortIndex = -1 ) {
-	      set sort = sortIndex
-	    }
-	    else {
-	      set sort = metric( sortIndex )
-	    }
+            set:($zu(84, 16, 3, line, rtnLine)) hits = hits + 1
+        }
 
-	    merge ^CacheTemp( index, sort, rtn ) = metric
-	  }
+        set line = $zu(84, 16, 7, rtnNum)
+        set metric(-3) = line
+        set metric(-2) = hits
+        set metric(-1) = +$fnumber(hits / line * 100, "", 2)
+        
+        /* $zu(84,16,2,rtn_n) returns routine name by number */
+        set rtn = $zu(84, 16, 2, rtnNum)
 
-	  kill totmetric
-	  kill summary
+        if (sortIndex = -1)
+        {
+            set sort = sortIndex
+        } else {
+            set sort = metric(sortIndex)
+        }
 
-	  set count = 0
-	  set sort = $order( ^CacheTemp( index, "" ), -1 )
+        merge ^CacheTemp(index, sort, rtn) = metric
+    }
 
-	  while ( sort '= "" ) {
-	    set rtn = $order( ^CacheTemp( index, sort, "" ) )
+    kill totmetric
+    kill summary
 
-	    while ( rtn '= "" ) {
-	      set summary( rtn ) = count
-	      set count = count + 1
-	      set metric = $order( ^CacheTemp( index, sort, rtn, "" ), 1, out)
+    set count = 0
+    set sort = $order(^CacheTemp(index, ""), -1)
 
-	      while ( metric '= "" ) {
-	        set totmetric( metric ) = $get( totmetric( metric ) ) + out
-	        // handle coverage percent
-	        if ( metric = -3 ) {
-	          set out = $select( out = -1:"NA", 1:out)
-	          set summary( rtn, "LinesCode" ) = out
-	        }
-	        
-	        if ( metric = -2 ) {
-	          set out = $select( out = -1:"NA", 1:out )
-	          set summary( rtn, "LinesHit" ) = out
-	        }
-	        
-	        set n = ""
-	        
-	        if ( metric '< 0 ) {
-	          set n = $zu( 84, 13, 11, metric )
-	        }
-	        
-	        if ( ( n = 50 ) || ( n = 51 ) ) {
-	          set out = $select( out = 0:"0", 1:$fnumber( out / 1000000, "", 6 ))
-	        }
-	        
-	        // don't accumulate total time, it doesn't make sense
-	        if ( n = 50 ) {
-	          set summary( rtn, "Time" ) = out
-	        }
+    while (sort '= "")
+    {
+        set rtn = $order(^CacheTemp(index, sort, ""))
 
-	        set metric = $order( ^CacheTemp( index, sort, rtn, metric ), 1, out )
-	      }
+        while (rtn '= "")
+        {
+            set summary(rtn) = count
+            set count = count + 1
+            set metric = $order(^CacheTemp(index, sort, rtn, ""), 1, out)
 
-	      set rtn = $order( ^CacheTemp( index, sort, rtn ) )
-	    }
+            while (metric '= "")
+            {
+                set totmetric(metric) = $get(totmetric(metric)) + out
 
-	    set sort = $order( ^CacheTemp( index, sort ), -1 )
-	  }
+                /* handle coverage percent */
+                if (metric = -3)
+                {
+                    set out = $select(out = -1: "NA", 1: out)
+                    set summary(rtn, "LinesCode") = out
+                }
 
-	  kill ^CacheTemp( index )
-	  $$$RemoveTempNode( ^CacheTemp( index ) )
+                if (metric = -2)
+                {
+                    set out = $select(out = -1: "NA", 1: out)
+                    set summary(rtn, "LinesHit") = out
+                }
 
-	  set json = "["
-	  set rtn = $order( summary( "" ) )
-	  
-	  while ( rtn '= "" ) {
-	    set json = json_"{""Routine"":"""_rtn_
-	                    """,""LinesCode"":"""_summary( rtn, "LinesCode" )_
-	                    """,""LinesHit"":"""_summary( rtn, "LinesHit" )_
-	                    """,""Time"":"""_summary( rtn, "Time" )_"""},"
-	    set rtn = $order( summary( rtn ) )              
-	  }
+                set n = ""
+                set:(metric '< 0) n = $zu(84, 13, 11, metric)
+                set:((n = 50) || (n = 51)) out = $select(out = 0: "0", 1: $fnumber(out / 1000000, "", 6))
 
-	  if ( json '= "[" ) {
-	    set json = $extract( json, 1, *-1 )_"]"
-	  }
-	  else {
-	    set json = ""
-	  }
+                /* don't accumulate total time, it doesn't make sense */
+                set:(n = 50) summary(rtn, "Time") = out
 
-	  w json
-	  
-	  return $$$OK
+                set metric = $order(^CacheTemp(index, sort, rtn, metric), 1, out)
+            }
+
+            set rtn = $order(^CacheTemp(index, sort, rtn))
+        }
+
+        set sort = $order(^CacheTemp(index, sort), -1)
+    }
+
+    kill ^CacheTemp(index)
+    $$$RemoveTempNode(^CacheTemp(index))
+
+    set json = "["
+    set rtn = $order(summary(""))
+
+    while (rtn '= "")
+    {
+        set json = json_"{""Routine"":"""_rtn_
+                        """,""LinesCode"":"""_summary(rtn, "LinesCode")_
+                        """,""LinesHit"":"""_summary(rtn, "LinesHit")_
+                        """,""Time"":"""_summary(rtn, "Time")_"""},"
+        set rtn = $order(summary(rtn))
+    }
+
+    if (json '= "[")
+    {
+        set json = $extract(json, 1, *-1)_"]"
+
+    } else {
+        set json = ""
+    }
+
+    write json      
+    return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -522,157 +572,156 @@ Get routine list by mask</Description>
     set content = ..ConvertRequestBody(%request.Content)
     set rtnName = content.rtnName
 
-    // find routine
-    set rtnNum = $zutil(84, 16)
+    /* find routine */
+    set rtnNum = $zu(84, 16)
     set found = 0
 
-    for rtn = 1 : 1 : rtnNum {
-      if ( rtnName = $zutil(84, 16, 2, rtn) ) {
-        set found = 1
-        quit
-      }
+    for rtn = 1 : 1 : rtnNum 
+    {
+        if (rtnName = $zu(84, 16, 2, rtn)) 
+        {
+            set found = 1
+            quit
+        }
     }
 
-    if ('found) return $$$OK
+    return:('found) $$$OK
 
 
-    // collect routine data
-    set lines = $zutil(84, 16, 1, rtn)
+    /* collect routine data */
+    set lines = $zu(84, 16, 1, rtn)
+    return:(lines = 0) $$$OK
+    
+
+    for line = 0 : 1 : (lines - 1)
+    {
+        kill map
+        set list = ""
+
+        set data = $zu(84, 16, 3, line, 33)
+        set list = list_$listbuild(data)
+
+        /* line time */
+        set data = $zu(84, 16, 3, line, 50)
+        /* convert clock/CPU time to seconds */
+        set data = $select(data = 0:0, 1:$fnumber(data / 1000000, "", 6))
+        set list = list_$listbuild(data)
+        set localTime = data
 
 
-    if (lines = 0 ) return $$$OK
-
-    for line = 0 : 1 : ( lines - 1 ) {
-      kill map
-      set list = ""
-
-      set data = $zutil( 84, 16, 3, line, 33 )
-      set list = list_$listbuild( data )
-
-      // line time
-      set data = $zutil(84, 16, 3, line, 50)
-      // convert clock/CPU time to seconds
-      set data = $select(data = 0:0, 1:$fnumber(data / 1000000, "", 6))
-      set list = list_$listbuild(data)
-
-      set localTime = data
-
-      // total time
-      set data = $zutil(84, 16, 3, line, 51)
-      // convert clock/CPU time to seconds
-      set data = $select(data = 0:0, 1:$fnumber( data / 1000000, "", 6))
-      set list = list_$listbuild(data)
-
-      set totalTime = data
-
-      set codeLine = $$LINE^%R(rtnName, line + 1)
-
-      set visitor.Routines = ""
-      set visitor.Classes = ""
-      set visitor.Methods = ""
-      set rtnNamesList = ""
-
-      // Missing lines without routine calls
-      if (totalTime > localTime) {
-
-        set tree = ##class(%Compiler.COS.ParseTree).Parse( codeLine, ,.sc )
-
-        if ( 'sc ) {
-          set tree = ""
-        }
+        /* total time */
+        set data = $zutil(84, 16, 3, line, 51)
+        /* convert clock/CPU time to seconds */
+        set data = $select(data = 0:0, 1:$fnumber(data / 1000000, "", 6))
+        set list = list_$listbuild(data)
+        set totalTime = data
         
-        kill classList
-        kill methodList
+
+        set codeLine = $$LINE^%R(rtnName, line + 1)
+
+        set visitor.Routines = ""
+        set visitor.Classes = ""
+        set visitor.Methods = ""
+        set rtnNamesList = ""
+
+        /* Missing lines without routine calls */
+        if (totalTime > localTime) {
+
+            set tree = ##class(%Compiler.COS.ParseTree).Parse(codeLine, ,.sc)
+
+            set:('sc) tree = ""
+
+            kill classList
+            kill methodList
         
-        if ( tree '= "" ) {
+            if (tree '= "")
+            {
+                do tree.accept(visitor)
 
-          do tree.accept( visitor )
-
-          set routines = visitor.Routines
-          
-          set rtnNamesList = ""
-          
-          set classList = visitor.Classes
-          set methodList = visitor.Methods
+                set rtnNamesList = ""
+                set routines = visitor.Routines
+                set classList = visitor.Classes
+                set methodList = visitor.Methods
                  
-          if ( $listlength( routines ) ) {
-            for k = 1 : 1 : $listlength( routines ) {
+                if ($listlength(routines))
+                {
+                    for k = 1 : 1 : $listlength(routines)
+                    {
+                        set routine = $piece($list(routines, k), "^", 2)
+                        set method = $piece($list(routines, k), "^", 1)
               
-              set routine = $piece( $list( routines, k ), "^", 2 )
-              set method = $piece( $list( routines, k ), "^", 1 )
-              
-              if ( method '= "" ) {
-                do ##class(%Studio.Debugger).INTLine( routine_".MAC", method, 0, .intName, .intLine)
+                        if (method '= "") 
+                        {
+                            do ##class(%Studio.Debugger).INTLine(routine_".MAC", method, 0, .intName, .intLine)
+                            set:(intName '= "") rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_method_"|"
+                        } else {
+                            set:(routine '= "") rtnNamesList = rtnNamesList_routine_"|"
+                        }
+                    } 
+                }            
+                    
+                    
+                if ($listlength(classList)) 
+                {
+                    for k = 1 : 1 : $listlength(classList) 
+                    {
+                        do ##class(%Studio.Debugger).INTLine($li(classList, k)_".CLS", $li(methodList, k), 0, .intName, .intLine)
+                        set:(intName '= "") rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_$li(methodList, k)_"|"
+                    } 
+                }         
 
-                if ( intName '= "" ) {
-                  set rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_method_"|"
-                } 
-              }
-              else {
-                if ( routine'= "" ) {
-                  set rtnNamesList = rtnNamesList_routine_"|"
-                }
-              }
-            } 
-          }            
-          
-          if ( $listlength( classList ) ) {
-            for k = 1 : 1 : $listlength( classList ) {
-              do ##class(%Studio.Debugger).INTLine( $li( classList, k)_".CLS", $li( methodList, k ), 0, .intName, .intLine)
+                set:(rtnNamesList '= "") rtnNamesList = $extract(rtnNamesList, 1, *-1)
 
-              if ( intName '= "" ) {
-                set rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_$li( methodList, k )_"|"
-              } 
-            } 
-          }          
-            
-          if ( rtnNamesList '= "" ) {
-            set rtnNamesList = $extract( rtnNamesList, 1, *-1 )
-          }
+            }
 
         }
 
-      }
+        do stream.WriteLine(codeLine)
+        do colorer.Color(stream, outStream)
 
-      do stream.WriteLine( codeLine )
-      do colorer.Color( stream, outStream )
+        set codeLine = $replace(outStream.ReadLine(), "\", "\\")
+        set codeLine = $replace(codeLine, $char(09), "\t")
+        set codeLine = $replace(codeLine, """", "\""")
 
-      set codeLine = $replace( outStream.ReadLine(), "\", "\\" )
-      set codeLine = $replace( codeLine, $char( 09 ), "\t" )
-      set codeLine = $replace( codeLine, """", "\""" )
+        set list = list_$listbuild(codeLine)
+        set list = list_$listbuild(rtnNamesList)
 
-      set list = list_$listbuild( codeLine )
-      set list = list_$listbuild( rtnNamesList )
-
-      set totalData( line + 1 ) = list
+        set totalData(line + 1) = list
     }
 
 
-    // Assambling JSON
+    /* assambling JSON */
     set json = "["
 
-    for line = 1 : 1 : lines {
-      set list = totalData( line )
+    for line = 1 : 1 : lines 
+    {
+        set list = totalData(line)
       
-      set json = json_"{""RtnLine"":"""_$li( list, 1 )_
-                       """,""Time"":"""_$li( list, 2 )_
-                       """,""TotalTime"":"""_$li( list, 3 )_
-                       """,""Line"":"""_$li( list, 4 )_
-                       """,""Calls"":"""_$li( list, 5 )_
-                       """},"
+        set json = json_"{""RtnLine"":"""_$li(list, 1)_
+                         """,""Time"":"""_$li(list, 2)_
+                         """,""TotalTime"":"""_$li(list, 3)_
+                         """,""Line"":"""_$li(list, 4)_
+                         """,""Calls"":"""_$li(list, 5)_
+                         """},"
     }  
 
 
-    if ( json '= "[" ) {
-      set json = $extract( json, 1, *-1 )_"]"
-    }
-    else {
-      set json = ""
+    if (json '= "[") 
+    {
+        set json = $extract(json, 1, *-1)_"]"
+        
+    } else {
+         set json = ""
     }
 
-    w json
+    write json
     return $$$OK
 ]]></Implementation>
+</Method>
+
+<Method name="selectAllRoutines">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Boolean</ReturnType>
 </Method>
 
 <Method name="ConvertRequestBody">
@@ -682,19 +731,22 @@ Converts request into UTF8. Converts request into proxyObject. </Description>
 <FormalSpec>content</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	#dim obj As %ZEN.proxyObject
+    #dim obj As %ZEN.proxyObject
 
-	return:'$isobject(content) $$$OK //empty request body - nothing to do
-	
-	// Convert request body into UTF8 proxyObject
-	set content = content.Read($$$MaxStringLength)
-	set content = $ZCVT(content,"I","UTF8") 
-	set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(content,,.obj,1)
-	return:$$$ISERR(st) st
-	return:'$IsObject(obj) $$$ERROR($$$ArgumentIsNotAnObject,"Body")
-	
-	set content = obj // obj here is a valid UTF8 proxyObject with required property
-	return content
+      /* empty request body - nothing to do */
+      return:'$isobject(content) $$$OK 
+    
+      /* Convert request body into UTF8 proxyObject */
+      set content = content.Read($$$MaxStringLength)
+      set content = $ZCVT(content,"I","UTF8") 
+      set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(content,, .obj, 1)
+      
+      return:$$$ISERR(st) st
+      return:'$IsObject(obj) $$$ERROR($$$ArgumentIsNotAnObject, "Body")
+    
+        /* obj here is a valid UTF8 proxyObject with required property */
+      set content = obj 
+      return content
 ]]></Implementation>
 </Method>
 </Class>
