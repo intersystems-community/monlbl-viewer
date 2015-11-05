@@ -17,7 +17,7 @@ todo add optional parameter WEBAPP to Alter web app name if it needs to have ano
 </IfNotDef>
 <If Condition='(##class(Config.Namespaces).Exists("${Namespace}")=0)'>
 <Log Text="Creating namespace ${Namespace}" Level="0"/>
-<Namespace Name="${Namespace}" Create="yes" Code="${Namespace}" Ensemble="" Data="${Namespace}">
+<Namespace Name="${Namespace}" Create="yes" Code="${Namespace}" Ensemble="0" Data="${Namespace}">
 <Configuration>
 <Database Name="${Namespace}" Dir="${MGRDIR}/${Namespace}" Create="yes" MountRequired="true" Resource="%DB_${Namespace}" PublicPermissions="RW" MountAtStartup="true"/>
 </Configuration>
@@ -26,6 +26,11 @@ todo add optional parameter WEBAPP to Alter web app name if it needs to have ano
 </If>
 
 <Namespace Name="${Namespace}" Create="no">
+<If Condition='(##class(Security.Applications).Exists("/csp/gmonlbl")=0)'>
+    <Log Text="Creating web application /csp/gmonlbl" Level="0"/>
+    <CSPApplication Url="/csp/gmonlbl" Directory="gmonlbl" AuthenticationMethods="64" IsNamespaceDefault="true" Recurse="true"/>
+    <!--<RunInstall Class="GMONLBL.Installer" Method="CreateWebApp"/>-->
+</If>
 <IfDef Var="SourceDir">
 <Log Text="SourceDir defined - offline install from ${SourceDir}" Level="0"/>
 <RunInstall Class="GMONLBL.Installer" Method="ImportDir"/>
@@ -35,16 +40,8 @@ todo add optional parameter WEBAPP to Alter web app name if it needs to have ano
 <Log Text="SourceDir undefined - online install from GitHub" Level="0"/>
 <RunInstall Class="GMONLBL.Installer" Method="DownloadFromGitHub"/>
 </IfNotDef>
-<If Condition='(##class(Security.Applications).Exists("/csp/gmonlbl")=0)'>
-    <Log Text="Creating web application /csp/gmonlbl" Level="0"/>
-    <!-- This method creates conflits with web-server. Kept for reference purposes. See ##class(%EnsembleMgr).createPortalApp()
-    <CSPApplication Url="/${Namespace}" Directory="" AuthenticationMethods="64" IsNamespaceDefault="false" />-->
-    <RunInstall Class="GMONLBL.Installer" Method="CreateWebApp"/>
-</If>
 <If Condition='(##class(Security.Applications).Exists("/gmonlbl/rest")=0)'>
     <Log Text="Creating web application /gmonlbl/rest" Level="0"/>
-    <!-- This method creates conflits with web-server. Kept for reference purposes. See ##class(%EnsembleMgr).createPortalApp()
-    <CSPApplication Url="/${Namespace}" Directory="" AuthenticationMethods="64" IsNamespaceDefault="false" />-->
     <RunInstall Class="GMONLBL.Installer" Method="CreateRESTApp"/>
 </If>
 </Namespace>
@@ -91,10 +88,19 @@ do ##class(GMONLBL.Installer).setup(.pVars)</Description>
 <Implementation><![CDATA[
     set Namespace=tInstaller.Evaluate("${Namespace}")
     do tInstaller.PushNS("%SYS")
-    set cspProperties("AutheEnabled") = 64
+    do ##class(Security.System).GetInstallationSecuritySetting(.security)
+    
+    if (security = "None") {
+        /* unauthenticade */
+        set cspProperties("AutheEnabled") = 64
+    } else {
+        /* password */
+        set cspProperties("AutheEnabled") = 32
+    }
     
     set cspProperties("NameSpace") = Namespace
-    set cspProperties("IsNameSpaceDefault") = 0
+    set cspProperties("Directory") = "gmonlbl"
+    set cspProperties("IsNameSpaceDefault") = 1
     set tSC = ##class(Security.Applications).Create("/csp/gmonlbl", .cspProperties)
     
     do tInstaller.PopNS()
