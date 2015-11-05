@@ -26,10 +26,10 @@ todo add optional parameter WEBAPP to Alter web app name if it needs to have ano
 </If>
 
 <Namespace Name="${Namespace}" Create="no">
-
 <IfDef Var="SourceDir">
 <Log Text="SourceDir defined - offline install from ${SourceDir}" Level="0"/>
-<Import File="${SourceDir}"/>
+<RunInstall Class="GMONLBL.Installer" Method="ImportDir"/>
+<!--<Import File="${SourceDir}"/>-->
 </IfDef>
 <IfNotDef Var="SourceDir">
 <Log Text="SourceDir undefined - online install from GitHub" Level="0"/>
@@ -91,18 +91,10 @@ do ##class(GMONLBL.Installer).setup(.pVars)</Description>
 <Implementation><![CDATA[
     set Namespace=tInstaller.Evaluate("${Namespace}")
     do tInstaller.PushNS("%SYS")
-    do ##class(Security.System).GetInstallationSecuritySetting(.security)
-    
-    if (security = "None") {
-        /* unauthenticade */
-        set cspProperties("AutheEnabled") = 64
-    } else {
-        /* password */
-        set cspProperties("AutheEnabled") = 32
-    }
+    set cspProperties("AutheEnabled") = 64
     
     set cspProperties("NameSpace") = Namespace
-    set cspProperties("IsNameSpaceDefault") = 1
+    set cspProperties("IsNameSpaceDefault") = 0
     set tSC = ##class(Security.Applications).Create("/csp/gmonlbl", .cspProperties)
     
     do tInstaller.PopNS()
@@ -152,6 +144,28 @@ do ##class(GMONLBL.Installer).setup(.pVars)</Description>
     
     set tSC = ..Update(Namespace, "intersystems-ru", "monlbl-viewer", "master")
     
+    do tInstaller.PopNS()
+    
+    throw:$$$ISERR(tSC) ##class(%Installer.Exception).CreateFromStatus(tSC)
+    quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ImportDir">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pVars,pLogLevel,tInstaller</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set SourceDir = tInstaller.Evaluate("${SourceDir}")
+    set Namespace = tInstaller.Evaluate("${Namespace}")
+    set oldNS = $Namespace
+    
+    do tInstaller.PushNS("%SYS")
+    zn Namespace
+    
+    set tSC = $system.OBJ.ImportDir(SourceDir,"*.xml","ck",,1)
+    
+    zn oldNS
     do tInstaller.PopNS()
     
     throw:$$$ISERR(tSC) ##class(%Installer.Exception).CreateFromStatus(tSC)

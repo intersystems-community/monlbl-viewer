@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2015.1.1 (Build 505U)" ts="2015-11-05 17:24:04">
+<Routine name="GMONLBL.REST" type="INC" timestamp="63859,50993.706724"><![CDATA[
+#include %occErrors
+#include %ZEN.Utils
+#define get(%name) $get(%request.Data(%name,1))
+#define Debug $d(%request.Data("Debug"))
+#define R(%property) %request.Content.##Expression(%property)
+#define Public ((%request.GetCgiEnv("SERVER_PORT") = 80) || (%request.GetCgiEnv("SERVER_PORT") = 443))
+#define Private '$$$Public
+]]></Routine>
 </Export>
