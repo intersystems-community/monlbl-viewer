@@ -19,7 +19,7 @@
 
         <script language="javascript">
             // REST web-app name, global variable
-            var RESTWebApp = {appName : "/monlbl/rest"};
+            var RESTWebApp = {appName : "/gmonlbl/rest"};
         </script>
     </head>
 
