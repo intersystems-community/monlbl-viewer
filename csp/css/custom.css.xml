@@ -236,11 +236,11 @@ main > .ng-scope {
     vertical-align: bottom;
 }
 
-.start-card .input-field {
+.start-card .custom-field {
     width: calc(100% - 140px) !important;
 }
 
-.start-card .input-field input{
+.start-card .custom-field input{
     height: 2.5em;
 }
 
@@ -293,7 +293,7 @@ main > .ng-scope {
     color: #FF4081;
     font-size: 0.7em;
     font-weight: 500;
-    padding: 0 0.75em;;
+    padding: 0 0.75rem;;
 }
 
 .start-card .card-header {
