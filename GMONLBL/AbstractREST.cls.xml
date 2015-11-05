@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Class name="GMONLBL.AbstractREST">
+<Description>
+All logic related to the proceccing of http requests.</Description>
+<IncludeCode>GMONLBL.REST</IncludeCode>
+<Super>%CSP.REST</Super>
+<TimeCreated>63572,78432.426689</TimeCreated>
+
+<Parameter name="UseSession">
+<Description>
+Session support</Description>
+<Type>Integer</Type>
+<Default>1</Default>
+</Parameter>
+
+<Method name="DispatchRequest">
+<Description><![CDATA[
+Dispatch a REST request according to URL and Method.<br>
+Add param Namespace to a request to execute in desired namespace.]]></Description>
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pUrl:%String,pMethod:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    #dim %response As %CSP.Response
+    #dim %request As %CSP.Request
+    #dim %session As %CSP.Session
+
+    /* CORS support */
+    do %response.SetHeader("Access-Control-Allow-Origin", ..GetOrigins())
+    do %response.SetHeader("Access-Control-Allow-Credentials", "true")
+    do %response.SetHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+    do %response.SetHeader("Access-Control-Max-Age", "10000")
+    do %response.SetHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept-Language, X-Requested-With")
+
+    set %response.CharSet = "utf-8"
+    set %response.ContentType = "application/json"
+
+    /* determine language, 
+    // localization support */
+    set %session.Language = $$MatchLanguage^%occMessages(%request.GetCgiEnv("HTTP_ACCEPT_LANGUAGE"), "%CSP", "+s")
+    set %response.Language = %session.Language
+    
+    #dim tSC As %Status = $$$OK
+    #dim e As %Exception.AbstractException
+    
+    #dim tMatcher As %Regex.Matcher
+    
+    #dim tArgs, tClass, tMatchUrl, tMapEntry, tRegEx, tTarget, tAccess As %String
+    #dim tI, tIndex As %Integer
+    #dim tResourceMatched As %Boolean
+    #dim tMethodMatched As %Boolean
+    
+    try {
+        
+        /* Convert request body, if any, from json to %ZEN.proxyObject
+        // If json contains _class property, json would be converted into
+        // an instance of _class value  */
+        set st = ..ConvertRequestBody()
+        if $$$ISERR(st) {
+            do ..Http500(st)
+            return
+        }
+        
+        /* Desired execusion namespace
+        // Check that it's availible */
+        set Namespace = $get(%request.Data("Namespace", 1))
+        set st = ..CheckNamespace(.Namespace)
+        if $$$ISERR(st) {
+            do ..Http500(st) 
+            return
+        }
+        
+        /* Check that the effective user (could be unknown user) can access this resource */
+        set tAccess = $SYSTEM.Security.Check($piece($zu(90,21,$namespace), "^", 4))
+        set tAccess2 = $SYSTEM.Security.Check($piece($zu(90,21,Namespace), "^", 4))
+        
+        if ((tAccess '[ "READ,WRITE") || (tAccess2 '[ "READ,WRITE")) {
+            /* don't want the session token */
+            set %response.OutputSessionToken = 0
+            /* set the Http Status */
+            set %response.Status = "401 Unauthorized"
+            /* write out the header */
+            do %response.WriteHTTPHeader()
+            
+            return
+        }
+        
+        set (tResourceMatched,tMethodMatched) = 0
+        
+        /* walk the dispatch map in collation order of defintion */
+        for tIndex = 1 : 1 {     
+            /* get the next map entry */
+            set tMapEntry = ..DispatchMap(tIndex)
+            quit:(tMapEntry = "")
+
+            set tRegEx = $List(tMapEntry, 1)
+            set tMatcher=##class(%Regex.Matcher).%New(tRegEx)
+        
+            /* extract the match url from the application name */
+            set tMatchUrl="/"_$Extract(pUrl, $Length(%request.Application) + 1, *)
+            
+            /* Test each regular expression in turn, extracting the arguments,
+            // dispatching to the named method */
+            if tMatcher.Match(tMatchUrl) {
+                set tResourceMatched = 1
+                continue:(pMethod '= $List(tMapEntry, 2))
+                
+                set tTarget = $List(tMapEntry, 3)
+                set tMethodMatched = 1
+                
+                if tMatcher.GroupCount {
+                    for tI = 1 : 1 : tMatcher.GroupCount {
+                         set tArgs(tI) = tMatcher.Group(tI)
+                    }
+                    
+                    set tArgs = tI
+                } else {
+                    set tArgs = 0
+                }
+                
+                /* check for optional ClassName prefix */
+                set tClass = $classname()
+                if (tTarget [ ":") {
+                    set tClass=$Piece(tTarget, ":")
+                    set tTarget=$Piece(tTarget, ":", 2)
+                }
+                
+                /* validate input */
+                set tBody = $List(tMapEntry, 4) 
+                set tSC = ..ValidateRequest(pMethod, tBody)
+                
+                if $$$ISERR(tSC) {
+                    do ..Http500(tSC) 
+                    quit
+                }
+                
+                /* dispatch in correct namespace */               
+                if (Namespace '= $Namespace) {
+                    set oldNS = $Namespace
+                    
+                    zn Namespace
+                    
+                    set tSC = $zobjclassmethod(tClass, tTarget, tArgs...)
+                    
+                    zn oldNS
+                } else {
+                    set tSC = $zobjclassmethod(tClass, tTarget, tArgs...)
+                }
+                
+                do:$$$ISERR(tSC) ..Http500(tSC) 
+                
+                /* don't want multiple matches */
+                quit
+            }
+        }
+        
+        /* didn't have a match for the resource, report not found */
+        if (tResourceMatched = 0) {
+            set tSC=..Http404()
+            quit
+        }
+        
+        /* had a match for resource but method not matched */
+        if (tMethodMatched = 0) {
+            set tSC=..Http405() 
+            quit
+        }
+            
+    } catch (ex) { 
+        do ..Http500(ex.AsStatus())
+    }
+    
+    set:(..#UseSession = 0) %session.EndSession = 1
+    
+    quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="ValidateRequest">
+<Description>
+Validates incoming request body against Body Route attribute.
+pMethod - is HTTP method: GET, POST, PUT, DELETE </Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pMethod:%String,pBody:%String=""</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    #dim %request As %CSP.Request
+    
+    return:((pMethod '= "POST") && (pMethod '= "PUT")) $$$OK
+    return:(pBody = "") $$$OK
+    return:'$d(%request.Content.%data(pBody)) $$$ERROR($$$PropertyRequired, pBody)
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ConvertRequestBody">
+<Description>
+Converts request body into UTF8. Converts request into %XEN.proxyObject. 
+If json contains _class property, json would be converted into an 
+instance of _class value </Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    #dim %request As %CSP.Request
+    #dim obj As %ZEN.proxyObject
+    
+    /* empty request body - nothing to do */
+    return:'$isobject(%request.Content) $$$OK
+    
+    /* convert request body into UTF8 proxyObject */
+    set content = %request.Content.Read($$$MaxStringLength)
+    set content = $ZCVT(content,"I","UTF8") 
+    
+    set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(content,, .obj, 1)
+    return:$$$ISERR(st) st
+    return:'$IsObject(obj) $$$ERROR($$$ArgumentIsNotAnObject, "Body")
+    
+    /* obj here is a valid UTF8 proxyObject with required property */
+    set %request.Content = obj 
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetOrigins">
+<Description>
+Get Origin from %request object </Description>
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set url = %request.GetCgiEnv("HTTP_REFERER")
+    /* get http(s)://origin.com:port */
+    return $p(url, "/", 1, 3)
+]]></Implementation>
+</Method>
+
+<Method name="Login">
+<Description>
+Called for a REST page in the event of a login being required</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>skipheader:%Boolean=1</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    do %response.SetHeader("Access-Control-Allow-Origin", ..GetOrigins())
+    do %response.SetHeader("Access-Control-Allow-Credentials", "true")
+    do %response.SetHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS")
+    do %response.SetHeader("Access-Control-Max-Age", "10000")
+    do %response.SetHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept-Language, X-Requested-With")
+    
+    set %response.CharSet = "utf-8"
+    set %response.ContentType="application/json"
+    
+    if (%request.GetCgiEnv("REQUEST_METHOD") = "OPTIONS") {
+        do %response.WriteHTTPHeader()
+        return $$$OK
+    }
+    
+    return ##super(skipheader)
+]]></Implementation>
+</Method>
+
+<Method name="Http500">
+<Description><![CDATA[
+Issue an '500' error and give some indication as to what occurred.<br>
+<b>pStatus</b> - %status, not %Exception.AbstractException.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pStatus:%Exception.AbstractException</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set %response.Status = "500 Internal Server Error"
+    
+    /* return a helpful error string */
+    write "{""Error"":"_$$$ZENJSSTR($System.Status.GetErrorText(pStatus,%session.Language))_"}"
+    
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CheckNamespace">
+<Description><![CDATA[
+Returns OK if namespace both exists and contains isc package.<br>
+<b>Namespace</b> - name of namespace. Sets namespace variable to current namespace if empty or missing.]]></Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&Namespace:%String=$Namespace]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    if (Namespace = "") {
+        set Namespace = $Namespace
+        return $$$OK
+    }
+    
+    return:('##class(%SYS.Namespace).Exists(Namespace)) $$$ERROR($$$NamespaceUnavailable,Namespace) 
+    
+    if (Namespace '= $Namespace) {
+        set oldNS = $Namespace
+        
+        zn Namespace
+        set exists = ##class(%Dictionary.CompiledClass).%ExistsId("GMONLBL.Broker") 
+        
+        zn oldNS
+        return:(exists = 0) $$$ERROR($$$GeneralError, "GMONLBL package is not mapped to " _ Namespace)        
+    }
+    
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="DispatchMap">
+<Description>
+This project creates the DispatchMethod used to dispatch the Url and Method to the associated target method</Description>
+<ClassMethod>1</ClassMethod>
+<CodeMode>generator</CodeMode>
+<FormalSpec>pIndex:%Integer</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    #dim tSC As %Status = $$$OK
+    #dim e As %Exception.AbstractException
+    
+    #dim tStream As %Stream.TmpCharacter
+    #dim tHandler As %XML.ImportHandler
+    #dim tCompiledClass As %Dictionary.CompiledClass
+    
+    #dim tArgCount, tIndex, tI, tCounter As %Integer
+    #dim tArgs, tChild, tClassName, tDispatch, tError, tMap, tMethod, tPattern, tPiece, tType, tUrl As %String
+    
+    try {   
+        set tClassName = %classname
+        
+        /* don't run on base class */
+        quit:(tClassName = "GMONLBL.AbstractREST")
+       
+        /* find named XDATA block */
+        if ##class(%Dictionary.CompiledXData).%ExistsId(tClassName_"||UrlMap") {
+            
+            set tCompiledClass=##class(%Dictionary.CompiledClass).%OpenId(tClassName,, .tSC)
+            quit:('$IsObject(tCompiledClass) || $$$ISERR(tSC))
+            
+            set tIndex = tCompiledClass.XDatas.FindObjectId(tClassName_"||UrlMap")
+            if (tIndex = "") {
+                set tSC=$$$ERROR($$$XDataBlockMissing, tClassName, "UrlMap") 
+                return
+            }
+        
+            /* get XDATA as stream */
+            set tStream = tCompiledClass.XDatas.GetAt(tIndex).Data
+            do tStream.Rewind()
+            
+            /* create an XML import handler (use the internal handler) */
+            set tHandler=##class(%XML.ImportHandler).%New("CacheTemp", $$$IntHandler) 
+        
+            /* create the Entity Resolver */
+            set tResolver=##class(%XML.SAX.XDataEntityResolver).%New(tClassName)
+        
+            /* parse the XML data in the specfied stream */
+            set tSC = ##Class(%XML.SAX.Parser).ParseStream(tStream, tHandler, tResolver,,, "Schema")
+            quit:$$$ISERR(tSC)       
+        
+            /* copy tree because handler will delete it's copy when it goes out of scope */
+            merge tMap = ^CacheTemp(tHandler.Tree)
+    
+            if ($data(tMap("error")) || $data(tMap("warning"))) {
+                
+                set tSC = $$$ERROR($$$InvalidDispatchMap)
+                for tType = "error","warning" {       
+                    set tIndex = "" for {
+                        set tIndex = $order(tMap(tType,tIndex), 1, tError) if tIndex="" Quit
+                        set tSC = $$$ADDSC(tSC, $$$ERROR($$$GeneralError, tError))
+                    }
+                }
+                quit
+            }
+            
+            /* walk the xml and generate the routing map */
+            set tChild="",tCounter=0 for {
+                set tChild = $order(tMap(1,"c",tChild)) 
+                quit:(tChild = "")
+                
+                set tPattern = ""
+                set tArgCount = 0
+                set tUrl = tMap(tChild,"a","Url")
+                
+                for tI= 2 : 1 : $length(tUrl, "/") {
+                    set tPiece=$piece(tUrl, "/", tI)
+                    
+                    if ($extract(tPiece) = ":") {
+                        set tPattern=tPattern_"/([^/]+)"
+                    } else {
+                        set tPattern=tPattern_"/"_tPiece
+                    }
+                }
+               
+                set tCounter=$Increment(tCounter),tMethod=tMap(tChild,"a","Method"),tDispatch=tMap(tChild,"a","Call"),tBody=$g(tMap(tChild,"a","Body"))
+                $$$GENERATE(" If pIndex="_tCounter_" Quit $ListBuild("""_tPattern_""","""_tMethod_""","""_tDispatch_""","""_tBody_""")")
+            }
+            $$$GENERATE(" Quit """"")
+                
+        } else {
+            /* The specified class must have an XDATA Block named UrlMap */
+            set tSC = $$$ERROR($$$XDataBlockMissing, tClassName, "UrlMap")
+        }
+        
+    } catch (e) {
+        set tSC=e.AsStatus()
+    }
+    
+    return tSC
+]]></Implementation>
+</Method>
+
+<XData name="Schema">
+<Description>
+This is the Schema which defines the form of the dispatch map</Description>
+<Internal>1</Internal>
+<Data><![CDATA[
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+
+<xs:element name="Routes">
+<xs:complexType>
+<xs:sequence>
+<xs:element name="Route" minOccurs="0" maxOccurs="unbounded">
+<xs:complexType>
+<xs:attribute name="Url"    type="string" use="required"/>
+<xs:attribute name="Method" type="string" use="required"/>
+<xs:attribute name="Call" type="call" use="required"/>
+<xs:attribute name="Body" type="string" use="optional"/>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+
+<xs:simpleType name="call">
+<xs:restriction base="xs:string">
+<xs:pattern value="([%]?[a-zA-Z][a-zA-Z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*)*:)?[%]?[a-zA-Z][a-zA-Z0-9]*"/>
+</xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="string">
+<xs:restriction base="xs:string">
+<xs:minLength value="1"/>
+</xs:restriction>
+</xs:simpleType>
+
+
+</xs:schema>
+]]></Data>
+</XData>
+</Class>
+</Export>

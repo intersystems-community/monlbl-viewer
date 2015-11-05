@@ -1,4 +1,5 @@
 /csp/gmonlbl
+GMONLBL.AbstractREST.cls
 GMONLBL.Broker.cls
 GMONLBL.Installer.cls
 GMONLBL.Visitor.cls
