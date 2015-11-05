@@ -26,7 +26,7 @@
      
     if (($extract(className, 1) = "%") && ($find(className, ".") = 0))
     {
-        set systemName = "%Library."_$EXTRACT( className, 2, * )
+        set systemName = "%Library."_$EXTRACT(className, 2, *)
     }
     
     for possibleName = className, "User."_className, systemName 
@@ -49,7 +49,7 @@
 
     if ('$listfind(..Routines, routineName)) 
     {
-        if ($find($list(routineName, 1), "^" )) 
+        if ($find($list(routineName, 1), "^")) 
         {
             set ..Routines = ..Routines_routineName
         }

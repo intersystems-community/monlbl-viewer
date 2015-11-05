@@ -2,6 +2,7 @@
 <Export generator="Cache" version="25">
 <CSP name="partials/summary.csp" application="/csp/gmonlbl/"><![CDATA[
 <!-- Summary table section start -->
+
 <div ng-controller="SummaryCtrl">
     <div class="container indent-top-60">
         <div id="table-container" class="row">

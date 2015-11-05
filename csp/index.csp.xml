@@ -68,7 +68,8 @@
                                     ng-disabled="app.statusCode === 0" disabled
                                     ng-click="app.onResetStats()"
                                     >Reset
-                            </button>
+                            </button>   
+                                        
                         </div>
                         <div class="right status">
                             <!-- Status of Caché Monitor -->
@@ -78,6 +79,7 @@
                 </nav>
             </div>
         </header>
+
 
         <main class="main-content">
             <!-- Loading template -->

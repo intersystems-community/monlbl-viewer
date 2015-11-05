@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Export generator="Cache" version="25">
 <Class name="GMONLBL.Broker">
-<Super>%CSP.REST</Super>
+<Super>GMONLBL.AbstractREST</Super>
 <TimeCreated>63160,86030.979011</TimeCreated>
 
 <XData name="UrlMap">
@@ -40,6 +40,9 @@ and passed as arguments to the named method.</Description>
 
     <!-- Get routine statistisc -->
     <Route Url="/routine" Method="POST" Call="GetRoutineData"/>
+    
+    <!-- Get namespaces list -->
+    <Route Url="/ns" Method="GET" Call="GetNSList"/>
 
     <!-- Test method -->
     <Route Url="/test" Method="GET" Call="Test"/>
@@ -78,23 +81,21 @@ Return monitor status</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    if (..isMonitorStopped()) 
-    {
-        write "{ ""status"" : ""0"" }"
+    set ns = $get(^|"%SYS"|SYS("MONITOR","NS")) 
+    
+    if (..isMonitorStopped()) {
+        write "{ ""status"" : ""0"", ""namespace"" : """_ns_""" }"
         return $$$OK
     }
 
   
-    if (..isMonitorStarted()) 
-    {
-
-        if (..isMonitorPaused()) 
-        {
-            write "{ ""status"" : ""2"" }"
+    if (..isMonitorStarted()) {
+        if (..isMonitorPaused()) {
+            write "{ ""status"" : ""2"", ""namespace"" : """_ns_"""  }"
             return $$$OK
         }
 
-        write "{ ""status"" : ""1"" }"
+        write "{ ""status"" : ""1"", ""namespace"" : """_ns_"""  }"
         return $$$OK
     }
 ]]></Implementation>
@@ -140,12 +141,20 @@ Start Caché Monitor</Description>
     set routineList = ""
     set rtn = ""
     set nlist = 0
-    set content = ..ConvertRequestBody(%request.Content)
-
-    set:$isobject(content) routineList = content.routineList
+    
+    set:$isobject(%request.Content) routineList = %request.Content.routineList, ns = %request.Content.namespace
         
     lock +^|"%SYS"|SYS("MON-HOLD"):3
-
+    lock +^|"%SYS"|SYS("MONITOR","NS"):3
+    
+    if ('$TEST) {
+        lock -^|"%SYS"|SYS("MON-HOLD") 
+        write "{ ""status"" : ""-1"" }"
+        return $$$OK
+    }
+       
+    set ^|"%SYS"|SYS("MONITOR","NS") = ns   
+       
     /* deselect all, prepare to incoming routine list */
     do $zu(84, 12, 0)
 
@@ -177,8 +186,7 @@ Start Caché Monitor</Description>
         set rtnName = $piece(routineList, "|", j)
     }
 
-    if (nlist = 0) 
-    {
+    if (nlist = 0) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""0"" }"
         return $$$OK
@@ -189,16 +197,14 @@ Start Caché Monitor</Description>
 
     /* allocate memory and initialize data structures
     // (switch on monitoring) */
-    if ($zu(84, 0, 1, 1, 1, 1, 1, 1) '= 1) 
-    {
+    if ($zu(84, 0, 1, 1, 1, 1, 1, 1) '= 1) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""-1"" }"
         return $$$OK
     }
  
     /* enable stats for all jobs */
-    if ($zu(84, 1, 1) '= 1) 
-    {
+    if ($zu(84, 1, 1) '= 1) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""-2"" }"
         return $$$OK
@@ -235,8 +241,10 @@ Stop Caché Monitor</Description>
     kill ^|"%SYS"|SYS("MONITOR","START")
     kill ^|"%SYS"|SYS("MONITOR","PAUSE")
     kill ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")
+    kill ^|"%SYS"|SYS("MONITOR","NS")
 
     lock -^|"%SYS"|SYS("MON-HOLD")
+    lock -^|"%SYS"|SYS("MONITOR","NS")
     
     write "{ ""status"" : """_status_""" }"
     return $$$OK
@@ -250,24 +258,21 @@ Stop Caché Monitor</Description>
     lock +^|"%SYS"|SYS("MON-HOLD"):3
   
     /* somebody already uses monitor */ 
-    if ('$TEST) 
-    {
+    if ('$TEST) {
         lock -^|"%SYS"|SYS("MON-HOLD") 
         write "{ ""status"" : ""-1"" }"
         return $$$OK
     }
 
     /* Monitor is not running */
-    if (..isMonitorStopped())
-    {
+    if (..isMonitorStopped()) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""-2"" }"
         return $$$OK
     }
 
     /* Monitor already running */
-    if ($zu(84, 1) = 1)
-    {
+    if ($zu(84, 1) = 1) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""-3"" }"
         return $$$OK
@@ -276,8 +281,7 @@ Stop Caché Monitor</Description>
     do $zu(84, 1, 1)
     set h1 = $horolog
 
-    if $d(^|"%SYS"|SYS("MONITOR","PAUSE")) 
-    {
+    if $d(^|"%SYS"|SYS("MONITOR","PAUSE")) {
         set x=((h1-^|"%SYS"|SYS("MONITOR","PAUSE"))*86400)+($p(h1,",",2)-$p(^|"%SYS"|SYS("MONITOR","PAUSE"),",",2))
         set ^|"%SYS"|SYS("MONITOR","PAUSE-TIME")=x+$g(^|"%SYS"|SYS("MONITOR","PAUSE-TIME"))
         kill ^|"%SYS"|SYS("MONITOR","PAUSE")
@@ -296,24 +300,21 @@ Stop Caché Monitor</Description>
     lock +^|"%SYS"|SYS("MON-HOLD"):3
 
     /* somebody already uses monitor */ 
-    if ('$TEST) 
-    {
+    if ('$TEST) {
         lock -^|"%SYS"|SYS("MON-HOLD") 
         write "{ ""status"" : ""-1"" }"
         return $$$OK
     }
 
     /* monitor is not running */
-    if ($zu(84, 8) = 0)
-    {
+    if ($zu(84, 8) = 0) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""-2"" }"
         return $$$OK
     }
 
     /* monitor already paused */
-    if ($zu(84, 1) = 0)
-    {
+    if ($zu(84, 1) = 0) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""-3"" }"
         return $$$OK
@@ -355,9 +356,8 @@ Get routine list by mask</Description>
     set routineList = ""
     set rtn = ""
     set nlist = 0
-    set content = ..ConvertRequestBody(%request.Content)
 
-    set:$isobject(content) routineList = content.routineList
+    set:$isobject(%request.Content) routineList = %request.Content.routineList
 
     lock +^|"%SYS"|SYS("MON-HOLD"):3
 
@@ -394,8 +394,7 @@ Get routine list by mask</Description>
 
     set routinesByMask = $listtostring(routinesByMask, "|")
 
-    if (nlist = 0) 
-    {
+    if (nlist = 0) {
         lock -^|"%SYS"|SYS("MON-HOLD")
         write "{ ""status"" : ""0"", ""routineList"" : """" }"
         
@@ -435,13 +434,11 @@ Get routine list by mask</Description>
         set hits = 0
 
         /* zero coverage stats */
-        if ($zutil(84, 16, 1, rtnNum) = 0) 
-        {
+        if ($zutil(84, 16, 1, rtnNum) = 0) {
             /* get number of lines in routine */
             set line = $$LENGTH^%R($zu(84, 16, 2, rtnNum))
 
-            if (line = 0) 
-            { 
+            if (line = 0) { 
                 set metric(-1) = -1
                 set metric(-2) = 0
                 set metric(-3) = "NA"
@@ -472,8 +469,7 @@ Get routine list by mask</Description>
         /* $zu(84,16,2,rtn_n) returns routine name by number */
         set rtn = $zu(84, 16, 2, rtnNum)
 
-        if (sortIndex = -1)
-        {
+        if (sortIndex = -1) {
             set sort = sortIndex
         } else {
             set sort = metric(sortIndex)
@@ -546,8 +542,7 @@ Get routine list by mask</Description>
         set rtn = $order(summary(rtn))
     }
 
-    if (json '= "[")
-    {
+    if (json '= "[") {
         set json = $extract(json, 1, *-1)_"]"
 
     } else {
@@ -561,25 +556,22 @@ Get routine list by mask</Description>
 
 <Method name="GetRoutineData">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>rtnName</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
     set stream = ##class(%Stream.TmpCharacter).%New()
     set outStream = ##class(%Stream.TmpCharacter).%New()
     set colorer = ##class(%SyntaxColor).%New()
     set visitor = ##class(GMONLBL.Visitor).%New()
-    
-    set content = ..ConvertRequestBody(%request.Content)
-    set rtnName = content.rtnName
-
+      
+    set rtnName = %request.Content.rtnName  
+      
     /* find routine */
     set rtnNum = $zu(84, 16)
     set found = 0
 
     for rtn = 1 : 1 : rtnNum 
     {
-        if (rtnName = $zu(84, 16, 2, rtn)) 
-        {
+        if (rtnName = $zu(84, 16, 2, rtn)) {
             set found = 1
             quit
         }
@@ -634,8 +626,7 @@ Get routine list by mask</Description>
             kill classList
             kill methodList
         
-            if (tree '= "")
-            {
+            if (tree '= "") {
                 do tree.accept(visitor)
 
                 set rtnNamesList = ""
@@ -643,15 +634,13 @@ Get routine list by mask</Description>
                 set classList = visitor.Classes
                 set methodList = visitor.Methods
                  
-                if ($listlength(routines))
-                {
+                if ($listlength(routines)) {
                     for k = 1 : 1 : $listlength(routines)
                     {
                         set routine = $piece($list(routines, k), "^", 2)
                         set method = $piece($list(routines, k), "^", 1)
               
-                        if (method '= "") 
-                        {
+                        if (method '= "") {
                             do ##class(%Studio.Debugger).INTLine(routine_".MAC", method, 0, .intName, .intLine)
                             set:(intName '= "") rtnNamesList = rtnNamesList_intName_"~"_intLine_"~"_method_"|"
                         } else {
@@ -661,8 +650,7 @@ Get routine list by mask</Description>
                 }            
                     
                     
-                if ($listlength(classList)) 
-                {
+                if ($listlength(classList)) {
                     for k = 1 : 1 : $listlength(classList) 
                     {
                         do ##class(%Studio.Debugger).INTLine($li(classList, k)_".CLS", $li(methodList, k), 0, .intName, .intLine)
@@ -706,8 +694,7 @@ Get routine list by mask</Description>
     }  
 
 
-    if (json '= "[") 
-    {
+    if (json '= "[") {
         set json = $extract(json, 1, *-1)_"]"
         
     } else {
@@ -719,34 +706,32 @@ Get routine list by mask</Description>
 ]]></Implementation>
 </Method>
 
-<Method name="selectAllRoutines">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Boolean</ReturnType>
-</Method>
-
-<Method name="ConvertRequestBody">
+<Method name="GetNSList">
 <Description>
-Converts request into UTF8. Converts request into proxyObject. </Description>
+Returns comma-separated list of all local availible namespaces</Description>
 <ClassMethod>1</ClassMethod>
-<FormalSpec>content</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-    #dim obj As %ZEN.proxyObject
-
-      /* empty request body - nothing to do */
-      return:'$isobject(content) $$$OK 
+    set st = ##class(%CSP.Portal.Utils).%GetNamespaceList(.nsarray)
+    return:$$$ISERR(st) st
     
-      /* Convert request body into UTF8 proxyObject */
-      set content = content.Read($$$MaxStringLength)
-      set content = $ZCVT(content,"I","UTF8") 
-      set st = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(content,, .obj, 1)
-      
-      return:$$$ISERR(st) st
-      return:'$IsObject(obj) $$$ERROR($$$ArgumentIsNotAnObject, "Body")
+    set namespace = $o(nsarray(""))
+    set nslist = ""
     
-        /* obj here is a valid UTF8 proxyObject with required property */
-      set content = obj 
-      return content
+    while namespace '= "" {
+        set enabled = $lg(nsarray(namespace), 1)
+        set remote = $lg(nsarray(namespace), 2)
+        
+        if ((enabled = 1) && (remote = 0)) {
+            set nslist = nslist_""""_namespace_""""_"," 
+        }
+        
+        set namespace = $o(nsarray(namespace))
+    }
+    
+    set nslist = $e(nslist, 1, *-1)
+    write "["_nslist_"]"
+    return $$$OK
 ]]></Implementation>
 </Method>
 </Class>
