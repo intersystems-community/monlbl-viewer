@@ -14,10 +14,13 @@ function MainCtrl($scope, $location, MainSrvc) {
     _s.selectedRoutinesSet = new Set();
     _s.routineListLoading = false;
     _s.isStartCard = false;
+    _s.NSList = [];
+    _s.namespace = "";
 
     /* This is main controller initialization method */
     _s.init = function () {
         _s.getStatus();
+        _s.getNSList();
 
         $("body").keydown(function (event) {
             _s.onGlobalKeyDown(event);
@@ -33,6 +36,7 @@ function MainCtrl($scope, $location, MainSrvc) {
         return MainSrvc.getStatus()
             .then(function (data) {
                 _s.statusCode = +data.status;
+                _s.namespace = data.namespace;
 
                 switch (+data.status) {
                 case 0:
@@ -58,6 +62,16 @@ function MainCtrl($scope, $location, MainSrvc) {
                 alert("Sorry. Unable to get status, try again.");
             });
     };
+
+    _s.getNSList = function () {
+        return MainSrvc.getNamespaceList()
+            .then(function (data) {
+                _s.NSList = data;
+            })
+            .catch(function () {
+                alert("Unable to get Namespace list");
+            });
+    }
 
     /* EVENT HANDLER
     // fires when 'Start' button on the main page pressed */
@@ -103,12 +117,13 @@ function MainCtrl($scope, $location, MainSrvc) {
 
         _s.routineListLoading = true;
 
+
         /* use regular expression to handle spaces between rotine masks */
         reg = /\s*,\s*/;
         routineList = _s.currentMask.split(reg);
         rtnNames = routineList.join('|');
 
-        MainSrvc.getRoutineList(rtnNames)
+        MainSrvc.getRoutineList(rtnNames, _s.namespace)
             .then(function (data) {
                 var
                     routines,
@@ -146,12 +161,20 @@ function MainCtrl($scope, $location, MainSrvc) {
     // fires when 'Add Routine' button pressed */
     _s.onStartMonitor = function () {
         var rtnNames = _s.selectedRoutines.join('|');
-        return MainSrvc.startMonitor(rtnNames)
+        return MainSrvc.startMonitor(rtnNames, _s.namespace)
             .then(function () {
-                _s.getStatus();
-                _s.onCancel();
-                _s.isStartCard = false;
-                _s.goRoute('/summary');
+                _s.getStatus().
+                    then(function (status) {
+                        _s.onCancel();
+                        _s.isStartCard = false;
+
+                        if (status !== 0) {
+                            _s.goRoute('/summary');
+                        } else {
+                            alert("Not enough memory to start profiling for all these routines.");
+                        }
+                    });
+
             })
             .catch(function () {
                 alert("Sorry. Unable to get status, try again.");
@@ -213,10 +236,11 @@ function MainCtrl($scope, $location, MainSrvc) {
     /* EVENT HANDLER
     // fires when 'Reset' button pressed */
     _s.onResetStats = function () {
-        MainSrvc.resetStats().then(function () {
-            _s.getStatus();
-            $scope.$broadcast("REFRESH");
-        })
+        return MainSrvc.resetStats()
+            .then(function () {
+                _s.getStatus();
+                $scope.$broadcast("REFRESH");
+            })
             .catch(function () {
                 alert("Sorry. Unable to get status, try again.");
             });

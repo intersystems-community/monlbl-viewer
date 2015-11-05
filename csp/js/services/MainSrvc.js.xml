@@ -8,11 +8,11 @@ function MainSrvc(RESTSrvc) {
         getStatus: function () {
             return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/status'});
         },
-        getRoutineList: function (list) {
-            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/routines', data: {routineList: list}});
+        getRoutineList: function (list, ns) {
+            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/routines?Namespace=' + (ns||''), data: {routineList: list}});
         },
-        startMonitor: function (list) {
-            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/start', data: {routineList: list}});
+        startMonitor: function (list, ns) {
+            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/start?Namespace=' + (ns||''), data: {routineList: list, namespace: ns}});
         },
         stopMonitor: function () {
             return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/stop'});
@@ -29,8 +29,11 @@ function MainSrvc(RESTSrvc) {
         resetStats: function () {
             return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/reset'});
         },
-        getRoutineData: function (rtnName) {
-            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/routine', data: {rtnName: rtnName}});
+        getRoutineData: function (rtnName, ns) {
+            return RESTSrvc.getPromise({method: 'POST', url: RESTWebApp.appName + '/routine?Namespace=' + (ns||''), data: {rtnName: rtnName}});
+        },
+        getNamespaceList: function () {
+            return RESTSrvc.getPromise({method: 'GET', url: RESTWebApp.appName + '/ns'});
         }
     };
 }

@@ -4,7 +4,7 @@
 'use strict';
 
 function RoutineCtrl($scope, $routeParams, MainSrvc) {
-    $scope.app = {};
+    //$scope.app = {};
     /* use a shorter variable for more readable code */
     var _s = $scope.app;
     _s.rowCollection = [];
@@ -21,7 +21,7 @@ function RoutineCtrl($scope, $routeParams, MainSrvc) {
 
         _s.isLoading = true;
 
-        MainSrvc.getRoutineData($routeParams.name).then(function (data) {
+        MainSrvc.getRoutineData($routeParams.name, _s.namespace).then(function (data) {
             _s.rowCollection = data;
             _s.displayedCollection = [].concat(_s.rowCollection);
             _s.isLoading = false;
