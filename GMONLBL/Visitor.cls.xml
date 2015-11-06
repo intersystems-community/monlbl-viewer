@@ -24,15 +24,13 @@
     set result = ""
     set systemName = ""
      
-    if (($extract(className, 1) = "%") && ($find(className, ".") = 0))
-    {
+    if (($extract(className, 1) = "%") && ($find(className, ".") = 0)) {
         set systemName = "%Library."_$EXTRACT(className, 2, *)
     }
     
     for possibleName = className, "User."_className, systemName 
     {
-        if ((possibleName '= "") && (##class(%Dictionary.CompiledClass).%ExistsId(possibleName))) 
-        {
+        if ((possibleName '= "") && (##class(%Dictionary.CompiledClass).%ExistsId(possibleName))) {
             set result = possibleName
             quit
         }
@@ -47,10 +45,8 @@
 <Implementation><![CDATA[
     set $list(routineName, *+1) = $list($$$CPTNODEANN(parseTree.treePtr, nodePtr, 1), 1)
 
-    if ('$listfind(..Routines, routineName)) 
-    {
-        if ($find($list(routineName, 1), "^")) 
-        {
+    if ('$listfind(..Routines, routineName)) {
+        if ($find($list(routineName, 1), "^")) {
             set ..Routines = ..Routines_routineName
         }
     }
