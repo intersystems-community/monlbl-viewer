@@ -45,22 +45,15 @@ todo add optional parameter WEBAPP to Alter web app name if it needs to have ano
 </If>
 </Namespace>
 
-<If Condition='(##class(Config.Namespaces).Exists("%All")=0)'>
-<Log Text="Creating namespace %All" Level="0"/>
-<Namespace Name="%All" Create="yes" Code="CACHETEMP" Data="CACHETEMP" Ensemble="0">
-<Configuration/>
-</Namespace>
-</If>
-
 <Log Text="Mapping GMONLBL package to %All namespace" Level="0"/>
-<Namespace Name="%All" Create="no" Code="CACHETEMP" Data="CACHETEMP" Ensemble="0">
+<Namespace Name="%All" Code="CACHETEMP" Data="CACHETEMP" Ensemble="0">
 <Configuration>
 <ClassMapping From="${Namespace}" Package="GMONLBL"/> 
 </Configuration>
 </Namespace>
 
 <Log Text="Mapping GMONLBL package to Samples namespace" Level="0"/>
-<Namespace Name="Samples" Create="no" Code="SAMPLES" Data="SAMPLES">
+<Namespace Name="Samples" Code="SAMPLES" Data="SAMPLES">
 <Configuration>
 <ClassMapping From="${Namespace}" Package="GMONLBL"/> 
 </Configuration>
@@ -81,26 +74,6 @@ do ##class(GMONLBL.Installer).setup(.pVars)</Description>
 <FormalSpec><![CDATA[&pVars,pLogLevel:%Integer=0,pInstaller:%Installer.Installer]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[    quit ##class(%Installer.Manifest).%Generate(%compiledclass, %code, "Install")
-]]></Implementation>
-</Method>
-
-<Method name="CreateWebApp">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>pVars,pLogLevel,tInstaller</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-    set Namespace=tInstaller.Evaluate("${Namespace}")
-    do tInstaller.PushNS("%SYS")
-    set cspProperties("AutheEnabled") = 64
-    
-    set cspProperties("NameSpace") = Namespace
-    set cspProperties("IsNameSpaceDefault") = 0
-    set tSC = ##class(Security.Applications).Create("/csp/gmonlbl", .cspProperties)
-    
-    do tInstaller.PopNS()
-    
-    if $$$ISERR(tSC) Throw ##class(%Installer.Exception).CreateFromStatus(tSC)
-    quit $$$OK
 ]]></Implementation>
 </Method>
 
@@ -326,31 +299,6 @@ Download list of files on https://raw.githubusercontent.com/ server.<br>
     }
     
     set Request.Server="api.github.com"
-    return st
-]]></Implementation>
-</Method>
-
-<Method name="RevokePublicPriveleges">
-<Description>
-Revokes all access of _PUBLIC user to everything in comma-separated list of namespaces</Description>
-<ClassMethod>1</ClassMethod>
-<FormalSpec>NamespacesList:%String="*"</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-    set:(NamespacesList = "*") NamespacesList = ..GetNSList()
-    set basens = $Namespace
-    set st = $$$OK
-    
-    for i = 1 : 1 : $l(NamespacesList, ",") {
-        zn $p(NamespacesList, ",", i)
-        set st1 = $SYSTEM.SQL.RevokeObjPriv("SELECT", "*", "TABLE", "_PUBLIC",,, "_SYSTEM")
-        set st2 = $SYSTEM.SQL.RevokeObjPriv("SELECT", "*", "VIEW", "_PUBLIC",,, "_SYSTEM")
-        set st3 = $SYSTEM.SQL.RevokeObjPriv("SELECT", "*", "CUBES", "_PUBLIC",,, "_SYSTEM")
-        set st4 = $SYSTEM.SQL.RevokeObjPriv("SELECT", "*", "STORED PROCEDURES", "_PUBLIC",,, "_SYSTEM")
-        set st = $$$ADDSC(st, $$$ADDSC(st1, $$$ADDSC(st2, $$$ADDSC(st3, st4))))
-    }
-    
-    zn basens
     return st
 ]]></Implementation>
 </Method>
