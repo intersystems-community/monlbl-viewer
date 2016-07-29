@@ -3,4 +3,5 @@
 GMONLBL.AbstractREST.cls
 GMONLBL.Broker.cls
 GMONLBL.Installer.cls
+GMONLBL.REST.inc
 GMONLBL.Visitor.cls
