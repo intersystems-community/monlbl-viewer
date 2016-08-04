@@ -50,18 +50,18 @@ and passed as arguments to the named method.</Description>
 ]]></Data>
 </XData>
 
-<Method name="Http404">
-<Description>
-Issue an '404' error (user can override)</Description>
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
+<UDLText name="T">
+<Content><![CDATA[
+/*/// Issue an '404' error (user can override)
+ClassMethod Http404() As %Status
+{
     &html<<h3 style="color:red">Page not found!</h3>>
   
     set %response.Status="404 Not Found"
     return $$$OK
-]]></Implementation>
-</Method>
+}*/
+]]></Content>
+</UDLText>
 
 <Method name="Test">
 <ClassMethod>1</ClassMethod>
