@@ -5,6 +5,8 @@ MONLBL Viewer - a web UI for inspecting Caché Monitor (%MONLBL) results.
 It provides a minimal metrics for routines (Line-by-Line statistics: Time, TotalTime, Number of executions)
 and summary on routines.
 
+/csp/gmonlbl/index.csp
+
 # Installation
 
 1. Download and import(compile) GMONLBL.Installer.cls.xml
