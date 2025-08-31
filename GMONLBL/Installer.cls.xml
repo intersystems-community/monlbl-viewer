@@ -118,7 +118,7 @@ do ##class(GMONLBL.Installer).setup(.pVars)</Description>
     set Namespace = tInstaller.Evaluate("${Namespace}")
     do tInstaller.PushNS("%SYS")
     
-    set tSC = ..Update(Namespace, "intersystems-ru", "monlbl-viewer", "new_installer")
+    set tSC = ..Update(Namespace, "intersystems-community", "monlbl-viewer", "main")
     
     do tInstaller.PopNS()
     
